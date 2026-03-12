@@ -1,10 +1,14 @@
-# 🎓 LearnClass - Plataforma educativa para profesores y alumnos
+#  LearnClass - Plataforma educativa para profesores y alumnos
 
-## 1. Idea de proyecto
+A web platform that allows teachers to manage courses and students to access materials, submit assignments, and communicate with teachers.
+
+---
+
+# 1. Idea de proyecto
 
 LearnClass es una plataforma web diseñada para mejorar la comunicación y organización entre profesores y alumnos.
 
-Actualmente, muchos estudiantes necesitan acceder a materiales de clase, entregar tareas o comunicarse con el profesor utilizando diferentes herramientas. LearnClass busca reunir todas estas funcionalidades en un único entorno digital.
+Actualmente muchos estudiantes necesitan acceder a materiales de clase, entregar tareas o comunicarse con el profesor utilizando diferentes herramientas. LearnClass busca reunir todas estas funcionalidades en un único entorno digital.
 
 La plataforma permitirá que los profesores puedan crear cursos, subir materiales y asignar tareas, mientras que los alumnos podrán acceder al contenido, entregar trabajos y consultar sus calificaciones.
 
@@ -12,7 +16,7 @@ El objetivo principal del proyecto es facilitar la gestión académica y mejorar
 
 ---
 
-## 2. Requisitos funcionales
+# 2. Requisitos funcionales
 
 La aplicación deberá permitir las siguientes funcionalidades:
 
@@ -20,9 +24,10 @@ La aplicación deberá permitir las siguientes funcionalidades:
 - El sistema diferenciará entre **dos tipos de usuario: profesor y alumno**.
 - Los profesores podrán **crear cursos o asignaturas**.
 - Los alumnos podrán **inscribirse en cursos disponibles**.
-- Los profesores podrán **subir materiales de clase** como documentos o enlaces educativos.
+- Los profesores podrán **subir materiales de clase** como documentos, enlaces o recursos educativos.
 - Los alumnos podrán **visualizar y descargar los materiales** de los cursos en los que estén inscritos.
 - Los profesores podrán **crear tareas o actividades** dentro de un curso.
+- -Los profesores podran **crear test avaluativos** dentro del curso.
 - Los alumnos podrán **entregar sus tareas a través de la plataforma**.
 - Los profesores podrán **revisar y calificar las entregas de los alumnos**.
 - El sistema permitirá **publicar avisos o anuncios dentro de cada curso**.
@@ -30,7 +35,7 @@ La aplicación deberá permitir las siguientes funcionalidades:
 
 ---
 
-## 3. Mockup gráfico
+# 3. Mockup gráfico
 
 A continuación se muestran algunos wireframes o mockups de las principales pantallas de la aplicación.
 
@@ -53,11 +58,11 @@ A continuación se muestran algunos wireframes o mockups de las principales pant
 
 ---
 
-## 4. Arquitectura y tecnología
+# 4. Arquitectura y tecnología
 
 El proyecto se desarrollará siguiendo una arquitectura **cliente-servidor basada en el patrón MVC (Model-View-Controller)**.
 
-### Frontend
+## Frontend
 
 El frontend será la parte visible de la aplicación y permitirá la interacción con los usuarios.
 
@@ -68,20 +73,26 @@ Tecnologías utilizadas:
 - JavaScript
 - Bootstrap (para diseño responsive)
 
-### Backend
+---
+
+## Backend
 
 El backend gestionará la lógica de negocio de la aplicación.
 
 Tecnologías utilizadas:
 
-- PHP
-- Arquitectura MVC para separar la lógica de datos, la interfaz y el control de las peticiones.
+- **Node.js**
+- **Express.js**
 
-### Base de datos
+Se utilizará una estructura basada en **MVC** para organizar el proyecto y separar las responsabilidades entre modelos, controladores y rutas.
+
+---
+
+## Base de datos
 
 Para el almacenamiento de información se utilizará:
 
-- MySQL
+- **MySQL**
 
 La base de datos almacenará información como:
 
@@ -92,12 +103,25 @@ La base de datos almacenará información como:
 - entregas
 - mensajes
 
-### Estructura general de la aplicación
+---
 
-La aplicación se dividirá en tres capas principales:
+## Comunicación en tiempo real
+
+Para implementar funcionalidades de mensajería o chat se utilizará:
+
+- **Socket.io**
+
+Esto permitirá que profesores y alumnos puedan comunicarse en tiempo real dentro de la plataforma.
+
+---
+
+## Estructura general de la aplicación
+
+La aplicación se dividirá en varias capas:
 
 - **Frontend** → interfaz que utilizan profesores y alumnos.
-- **Backend (PHP con MVC)** → lógica de negocio y gestión de datos.
+- **Backend (Node.js + Express)** → lógica de negocio y gestión de peticiones.
 - **Base de datos (MySQL)** → almacenamiento de la información del sistema.
+- **Servidor de comunicación en tiempo real (Socket.io)** → mensajería instantánea.
 
-Esta arquitectura permite una aplicación organizada, escalable y fácil de mantener.
+Esta arquitectura permite que la aplicación sea modular, escalable y fácil de mantener.
