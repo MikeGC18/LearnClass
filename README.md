@@ -1,4 +1,4 @@
-# 🎓 LearnClass - Plataforma educativa para profesores y alumnos
+# LearnClass - Plataforma educativa para profesores y alumnos
 
 Una plataforma web que permite a los profesores gestionar cursos y a los estudiantes acceder a materiales, enviar tareas y comunicarse con los profesores. 
 
