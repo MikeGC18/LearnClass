@@ -39,21 +39,20 @@ La aplicación deberá permitir las siguientes funcionalidades:
 A continuación se muestran algunos wireframes o mockups de las principales pantallas de la aplicación.
 
 ### Página de inicio
-![Home Mockup](mockups/home.png)
+![Home Mockup](Imagenes/Mockup1.png)
 
-### Panel de profesor
-![Teacher Dashboard](mockups/teacher_dashboard.png)
+### Inicio de Sesión
+![Teacher Dashboard](Imagenes/Mockup2.png)
 
 ### Panel de alumno
-![Student Dashboard](mockups/student_dashboard.png)
+![Student Dashboard](Imagenes/Mockup3.png)
 
-### Gestión de cursos
-![Courses Mockup](mockups/courses.png)
+### Panel de Profesor
+![Courses Mockup](Imagenes/Mockup4.png)
 
-### Entrega de tareas
-![Assignments Mockup](mockups/assignments.png)
+### Crear Test
+![Assignments Mockup](Imagenes/Mockup5.png)
 
-*(Los mockups han sido diseñados utilizando herramientas como Figma, Excalidraw o bocetos iniciales.)*
 
 ---
 
