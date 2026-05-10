@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Cuenta - LearnClass</title>
+    <link rel="stylesheet" href="/verificar.css">
+</head>
+
+<body>
+    <div class="verify-page">
+        <div class="verify-card">
+            <div class="verify-logo">
+                <img src="/afbbf15d5e82a1c4fb5a55c4eacf3003-icono-de-gorro-de-graduacion.png" alt="LearnClass">
+                <span>LearnClass</span>
+            </div>
+
+            <h2>Verificación de Cuenta</h2>
+            <p>Hemos enviado un PIN de 6 dígitos a tu correo. Por favor, ingrésalo abajo para activar tu cuenta.</p>
+
+            <form id="verifyForm">
+                <div class="field">
+                    <span class="icon">🔑</span>
+                    <input type="text" id="pin" placeholder="Ingresa tu PIN" required maxlength="6" pattern="\d{6}">
+                </div>
+
+                <button type="submit" class="btn-verify">Verificar Cuenta</button>
+            </form>
+
+            <p style="margin-top: 12px; font-size: 13px; text-align: center;">
+                ¿No recibiste el PIN?
+                <a href="#" id="btnReenviar" style="color: #111; font-weight: bold;">Reenviar PIN</a>
+            </p>
+
+            <p id="response" style="margin-top: 15px; font-size: 14px; text-align: center;"></p>
+        </div>
+
+        <footer class="verify-footer">
+            <div>Plataforma educativa con derechos de autor 2026</div>
+            <div>@copyright</div>
+        </footer>
+    </div>
+
+    <script>
+        
+        document.getElementById("verifyForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const pinIngresado = document.getElementById("pin").value;
+            const email = localStorage.getItem('userEmail');
+            const responseMsg = document.getElementById("response");
+
+            responseMsg.innerText = "Verificando...";
+            responseMsg.style.color = "blue";
+
+            try {
+                const res = await fetch('/auth/verificar-pin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, pinIngresado })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('userName', result.user.nombre);
+                    localStorage.setItem('userEmail', result.user.email);
+
+                    responseMsg.innerText = "✅ Cuenta verificada. Redirigiendo...";
+                    responseMsg.style.color = "green";
+
+                    setTimeout(() => {  
+                        if (result.user.role === 'teacher') {
+                            window.location.href = '/bienvenidaprofesor';
+                        } else {
+                            window.location.href = '/bienvenida';
+                        }
+                    }, 1500);
+                } else {
+                    responseMsg.innerText = result.error || "Error al verificar el PIN.";
+                    responseMsg.style.color = "red";
+                }
+            } catch (error) {
+                console.error("Error en la conexión:", error);
+                responseMsg.innerText = "Error de conexión con el servidor.";
+                responseMsg.style.color = "red";
+            }
+        });
+
+       
+        document.getElementById('btnReenviar').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = localStorage.getItem('userEmail');
+            const responseMsg = document.getElementById('response');
+
+            responseMsg.innerText = 'Reenviando PIN...';
+            responseMsg.style.color = 'blue';
+
+            
+            const btn = document.getElementById('btnReenviar');
+            btn.style.pointerEvents = 'none';
+            btn.style.color = '#aaa';
+
+            try {
+                const res = await fetch('/auth/reenviar-pin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    responseMsg.innerText = '✅ PIN reenviado a tu correo';
+                    responseMsg.style.color = 'green';
+                    // Reactivar después de 30 segundos
+                    setTimeout(() => {
+                        btn.style.pointerEvents = 'auto';
+                        btn.style.color = '#111';
+                    }, 30000);
+                } else {
+                    responseMsg.innerText = result.error || 'Error al reenviar el PIN';
+                    responseMsg.style.color = 'red';
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.color = '#111';
+                }
+            } catch {
+                responseMsg.innerText = 'Error de conexión';
+                responseMsg.style.color = 'red';
+                btn.style.pointerEvents = 'auto';
+                btn.style.color = '#111';
+            }
+        });
+    </script>
+</body>
+
+</html>

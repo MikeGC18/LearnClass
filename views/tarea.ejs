@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle Tarea - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/tarea.css">
+        
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/dashboard-profesor" class="btn-volver">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+            <h2>Detalle de Tarea</h2>
+        </div>
+
+        <!-- Info actual -->
+        <div class="card" id="cardInfo">
+            <h3>Información</h3>
+            <div class="info-row">
+                <i class="fa-solid fa-book"></i>
+                <span><strong id="infoTitulo">Cargando...</strong></span>
+            </div>
+            <div class="info-row">
+                <i class="fa-solid fa-align-left"></i>
+                <span id="infoDescripcion">—</span>
+            </div>
+            <div class="info-row">
+                <i class="fa-solid fa-calendar"></i>
+                <span>Entrega: <strong id="infoFecha">—</strong></span>
+            </div>
+            <div class="info-row">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Estado: <span id="infoPill"></span></span>
+            </div>
+            <div class="info-row" id="infoArchivoRow" style="display:none;">
+                <i class="fa-solid fa-paperclip"></i>
+                <a id="infoArchivo" href="#" target="_blank" style="color:#3498db;">Ver archivo adjunto</a>
+            </div>
+        </div>
+
+        <!-- Editar tarea -->
+        <div class="card">
+            <h3>Editar tarea</h3>
+
+            <div class="form-group">
+                <label>Nombre de la tarea</label>
+                <input type="text" id="editTitulo" placeholder="Nombre de la tarea">
+            </div>
+
+            <div class="form-group">
+                <label>Descripción <span style="font-weight:400; text-transform:none;">(opcional)</span></label>
+                <textarea id="editDescripcion" placeholder="Descripción de la tarea..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Fecha y hora de entrega</label>
+                <div class="fecha-hora">
+                    <input type="date" id="editFecha">
+                    <input type="time" id="editHora">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Cambiar archivo <span style="font-weight:400; text-transform:none;">(opcional)</span></label>
+                <div id="archivoActualContainer"></div>
+                <div class="upload-zone">
+                    <input type="file" id="editArchivo" accept=".pdf,.zip,.rar,.doc,.docx,.png,.jpg,.txt">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>Arrastra un archivo o haz clic para cambiar</p>
+                </div>
+                <p id="nombreArchivoNuevo"></p>
+            </div>
+
+            <button class="btn-guardar" id="btnGuardar">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Guardar cambios
+            </button>
+
+            <button class="btn-guardar" style="background:#3498db; margin-bottom:10px;" id="btnVerEntregas">
+                <i class="fa-solid fa-inbox"></i>
+                Ver entregas
+            </button>
+            
+            <button class="btn-eliminar" id="btnEliminar">
+                <i class="fa-solid fa-trash"></i>
+                Eliminar tarea
+            </button>
+
+            <p id="mensajeRespuesta"></p>
+        </div>
+    </div>
+
+   <script>
+   
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login';
+    }
+
+    
+    const tareaId = window.location.pathname.split('/').pop();
+
+    
+    async function cargarTarea() {
+        const respuesta = await fetch('/materias/tarea/' + tareaId, {
+            method: 'GET',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const datos = await respuesta.json();
+        const tarea = datos.tarea;
+
+        const fechaEntrega = new Date(tarea.fechaEntrega);
+        const ahora = new Date();
+        const diferencia = fechaEntrega - ahora;
+
+        
+        document.getElementById('infoTitulo').innerText = tarea.titulo;
+        document.getElementById('infoDescripcion').innerText = tarea.descripcion || 'Sin descripción';
+        document.getElementById('infoFecha').innerText = fechaEntrega.toLocaleDateString('es-ES') + ' ' + fechaEntrega.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+        
+        let estadoHTML = '';
+        if (diferencia < 0) {
+            estadoHTML = '<span class="pill red">Vencida</span>';
+        } else if (diferencia < 1000 * 60 * 60 * 48) {
+            estadoHTML = '<span class="pill orange">Próxima a vencer</span>';
+        } else {
+            estadoHTML = '<span class="pill green">Abierta</span>';
+        }
+        document.getElementById('infoPill').innerHTML = estadoHTML;
+
+        
+        if (tarea.archivo) {
+            document.getElementById('infoArchivoRow').style.display = 'flex';
+            document.getElementById('infoArchivo').href = '/' + tarea.archivo;
+            document.getElementById('archivoActualContainer').innerHTML =
+                '<div class="archivo-actual">' +
+                '<i class="fa-solid fa-paperclip"></i>' +
+                'Archivo actual: <a href="/' + tarea.archivo + '" target="_blank">' + tarea.archivo.split('/').pop() + '</a>' +
+                '</div>';
+        }
+
+        
+        document.getElementById('editTitulo').value = tarea.titulo;
+        document.getElementById('editDescripcion').value = tarea.descripcion || '';
+        document.getElementById('editFecha').value = fechaEntrega.toISOString().split('T')[0];
+        document.getElementById('editHora').value = fechaEntrega.toTimeString().slice(0, 5);
+    }
+    cargarTarea();
+
+    document.getElementById('btnVerEntregas').addEventListener('click', function () {
+        window.location.href = '/entregas/' + tareaId;
+    });
+
+   
+    document.getElementById('editArchivo').addEventListener('change', function (e) {
+        const el = document.getElementById('nombreArchivoNuevo');
+        if (e.target.files[0]) {
+            el.innerText = '📎 ' + e.target.files[0].name;
+            el.style.display = 'block';
+        }
+    });
+
+   
+    document.getElementById('btnGuardar').addEventListener('click', async function () {
+        const titulo = document.getElementById('editTitulo').value.trim();
+        const descripcion = document.getElementById('editDescripcion').value.trim();
+        const fecha = document.getElementById('editFecha').value;
+        const hora = document.getElementById('editHora').value;
+        const archivo = document.getElementById('editArchivo').files[0];
+        const msg = document.getElementById('mensajeRespuesta');
+        const btn = document.getElementById('btnGuardar');
+
+     
+        if (!titulo || !fecha || !hora) {
+            msg.innerText = 'Rellena todos los campos obligatorios';
+            msg.style.color = 'red';
+            return;
+        }
+
+        // Preparamos los datos para enviar al servidor
+        const fechaEntrega = new Date(fecha + 'T' + hora).toISOString();
+        const formData = new FormData();
+        formData.append('titulo', titulo);
+        formData.append('descripcion', descripcion);
+        formData.append('fechaEntrega', fechaEntrega);
+        if (archivo) {
+            formData.append('archivo', archivo);
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
+        const respuesta = await fetch('/materias/tarea/' + tareaId, {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + token },
+            body: formData
+        });
+
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+            msg.innerText = '✅ Tarea actualizada correctamente';
+            msg.style.color = 'green';
+            cargarTarea();
+        } else {
+            msg.innerText = resultado.error || 'Error al actualizar';
+            msg.style.color = 'red';
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar cambios';
+    });
+
+  
+    document.getElementById('btnEliminar').addEventListener('click', async function () {
+        if (!confirm('¿Seguro que quieres eliminar esta tarea?')) return;
+
+        const respuesta = await fetch('/materias/tarea/' + tareaId, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (respuesta.ok) {
+            window.location.href = '/dashboard-profesor';
+        } else {
+            const resultado = await respuesta.json();
+            alert(resultado.error || 'Error al eliminar');
+        }
+    });
+</script>
+</body>
+
+</html>

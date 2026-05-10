@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Registro - LearnClass</title>
+    <link rel="stylesheet" href="/registro.css">
+</head>
+
+<body>
+    <div class="register-page">
+        <div class="register-card">
+            <div class="register-logo">
+                <img src="/afbbf15d5e82a1c4fb5a55c4eacf3003-icono-de-gorro-de-graduacion.png" alt="LearnClass">
+                <span>LearnClass</span>
+            </div>
+
+            <h2>Crear cuenta</h2>
+
+            <form id="registerForm" style="display: flex; flex-direction: column; gap: 16px; align-items: center;">
+
+                <div class="field">
+                    <span class="icon">👤</span>
+                    <input type="text" id="name" placeholder="Nombre completo" required>
+                </div>
+
+                <div class="field">
+                    <span class="icon">🆔</span>
+                    <input type="text" id="username" placeholder="Nombre de usuario (ej: mike20)" required>
+                </div>
+
+                <div class="field">
+                    <span class="icon">🏫</span>
+                    <input type="text" id="institucion" placeholder="Centro educativo (ej: IES Madrid)" required>
+                </div>
+
+                <div class="field">
+                    <span class="icon">📧</span>
+                    <input type="email" id="email" placeholder="Correo electrónico" required>
+                </div>
+
+                <div class="field">
+                    <span class="icon">🔒</span>
+                    <input type="password" id="password" placeholder="Contraseña" required minlength="6">
+                </div>
+
+                <div class="field">
+                    <span class="icon">🔒</span>
+                    <input type="password" id="confirmPassword" placeholder="Confirmar contraseña" required
+                        minlength="6">
+                </div>
+
+                <div class="field">
+                    <span class="icon">🎭</span>
+                    <select id="role" required>
+                        <option value="" disabled selected>Selecciona tu rol</option>
+                        <option value="student">Estudiante</option>
+                        <option value="teacher">Profesor</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-register">Registrarse</button>
+            </form>
+
+            <p id="response" style="margin-top: 15px; font-size: 14px; text-align: center;"></p>
+
+            <p style="font-size: 13px; color: #666; margin-top: 8px;">
+                ¿Ya tienes cuenta? <a href="/login" style="color: #111; font-weight: bold;">Iniciar sesión</a>
+            </p>
+        </div>
+
+        <footer class="register-footer">
+            <div>Plataforma educativa con derechos de autor 2026</div>
+            <div>@copyright</div>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById("registerForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById("name").value.trim();
+            const username = document.getElementById("username").value.trim();
+            const institucion = document.getElementById("institucion").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+            const role = document.getElementById("role").value;
+
+            const responseMsg = document.getElementById("response");
+
+            if (password !== confirmPassword) {
+                responseMsg.innerText = "Las contraseñas no coinciden";
+                responseMsg.style.color = "red";
+                return;
+            }
+
+            if (password.length < 6) {
+                responseMsg.innerText = "La contraseña debe tener al menos 6 caracteres";
+                responseMsg.style.color = "red";
+                return;
+            }
+
+            if (!role) {
+                responseMsg.innerText = "Por favor selecciona un rol";
+                responseMsg.style.color = "red";
+                return;
+            }
+
+            const data = {
+                name: name,
+                username: username,
+                institucion: institucion,
+                email: email,
+                password: password,
+                role: role
+            };
+
+            responseMsg.innerText = "Enviando PIN...";
+            responseMsg.style.color = "blue";
+
+            try {
+                const res = await fetch('/auth/registro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem('userEmail', email);
+                    localStorage.setItem('userName', name);
+                    window.location.href = '/verificar';
+                } else {
+                    responseMsg.innerText = result.error || "Error al registrarse";
+                    responseMsg.style.color = "red";
+                }
+            } catch (error) {
+                console.error("Error en el fetch:", error);
+                responseMsg.innerText = "Error de conexión con el servidor";
+                responseMsg.style.color = "red";
+            }
+        });
+    </script>
+</body>
+
+</html>

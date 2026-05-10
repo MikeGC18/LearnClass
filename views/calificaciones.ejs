@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Calificaciones - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/asignatura.css">
+    <style>
+        .materia-group {
+            margin-bottom: 30px;
+        }
+
+        .materia-title {
+            background: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            font-size: 1.1rem;
+        }
+
+        .calif-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .calif-table th,
+        .calif-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .nota-badge {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .nota-pendiente {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/dashboardalumno" class="btn-volver"><i class="fa-solid fa-arrow-left"></i> Volver</a>
+            <h2><i class="fa-solid fa-graduation-cap"></i> Mis Calificaciones</h2>
+        </div>
+
+        <div id="contenedorCalificaciones">
+            <div class="empty"><i class="fa-solid fa-spinner fa-spin"></i> Cargando tus notas...</div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const alumnoId = JSON.parse(atob(token.split('.')[1])).id; // Sacamos tu ID del token
+
+        async function cargarCalificaciones() {
+            try {
+                const res = await fetch('/materias/tareas-alumno', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const contenedor = document.getElementById('contenedorCalificaciones');
+
+                if (res.ok && data.tareas) {
+                    const materiasAgrupadas = {};
+
+                    data.tareas.forEach(tarea => {
+                        const nombreMat = tarea.materia ? tarea.materia.nombre : 'Otras';
+                        if (!materiasAgrupadas[nombreMat]) {
+                            materiasAgrupadas[nombreMat] = [];
+                        }
+                        materiasAgrupadas[nombreMat].push(tarea);
+                    });
+
+                    let html = '';
+                    for (const materia in materiasAgrupadas) {
+                        html += `
+                            <div class="materia-group">
+                                <div class="materia-title">${materia}</div>
+                                <table class="calif-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Actividad (Tarea/Examen)</th>
+                                            <th>Fecha</th>
+                                            <th>Calificación</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${materiasAgrupadas[materia].map(t => {
+                            // Buscamos tu entrega específica
+                            const miEntrega = t.entregas.find(e => e.alumno === alumnoId || e.alumno?._id === alumnoId);
+                            const nota = (miEntrega && miEntrega.calificacion !== undefined)
+                                ? `<span class="nota-badge">${miEntrega.calificacion} / 10</span>`
+                                : `<span class="nota-badge nota-pendiente">Pendiente</span>`;
+
+                            return `
+                                                <tr>
+                                                    <td>${t.titulo}</td>
+                                                    <td>${new Date(t.fechaEntrega).toLocaleDateString()}</td>
+                                                    <td>${nota}</td>
+                                                </tr>
+                                            `;
+                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    }
+                    contenedor.innerHTML = html || '<p>No tienes actividades registradas.</p>';
+                }
+            } catch (err) {
+                contenedor.innerHTML = '<p>Error al cargar las calificaciones.</p>';
+                console.error(err);
+            }
+        }
+        cargarCalificaciones();
+    </script>
+</body>
+
+</html>

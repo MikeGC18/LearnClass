@@ -1,0 +1,284 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f2f2f2;
+}
+
+.topbar {
+    height: 64px;
+    background: #62b9e8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #111;
+}
+
+.brand img {
+    width: 32px;
+    height: 32px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 36px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.btn-volver {
+    text-decoration: none;
+    color: #3498db;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.header-info h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #111;
+}
+
+.header-info p {
+    font-size: 14px;
+    color: #718096;
+    margin-top: 2px;
+}
+
+.tabs {
+    display: flex;
+    gap: 4px;
+    background: white;
+    padding: 6px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    width: fit-content;
+}
+
+.tab {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: #718096;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab.active {
+    background: #111;
+    color: white;
+}
+
+.tab:hover:not(.active) {
+    background: #f4f4f4;
+    color: #111;
+}
+
+.panel {
+    display: none;
+}
+
+.panel.active {
+    display: block;
+}
+
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 26px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #a0aec0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* Material */
+.material-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border: 1px solid #edf2f7;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+}
+
+.material-item:hover {
+    border-color: #3498db;
+    background: #f0f7ff;
+}
+
+.material-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.material-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.icon-pdf {
+    background: #fff5f5;
+    color: #e53e3e;
+}
+
+.icon-zip {
+    background: #fffbeb;
+    color: #d69e2e;
+}
+
+.icon-doc {
+    background: #ebf8ff;
+    color: #3182ce;
+}
+
+.icon-img {
+    background: #f0fff4;
+    color: #38a169;
+}
+
+.icon-default {
+    background: #f7fafc;
+    color: #718096;
+}
+
+.material-datos strong {
+    display: block;
+    font-size: 15px;
+    color: #2d3748;
+}
+
+.material-datos span {
+    font-size: 12px;
+    color: #a0aec0;
+}
+
+.btn-descargar {
+    background: #111;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+}
+
+.btn-descargar:hover {
+    background: #333;
+}
+
+/* Tareas */
+.tarea-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border: 1px solid #edf2f7;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tarea-item:hover {
+    border-color: #3498db;
+    background: #f0f7ff;
+}
+
+.tarea-info strong {
+    display: block;
+    font-size: 15px;
+    color: #2d3748;
+}
+
+.tarea-info span {
+    font-size: 12px;
+    color: #a0aec0;
+}
+
+.pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.pill.green {
+    background: #95e686;
+}
+
+.pill.orange {
+    background: #f4a62a;
+}
+
+.pill.red {
+    background: #ff2b1f;
+    color: white;
+}
+
+.empty {
+    text-align: center;
+    color: #a0aec0;
+    padding: 40px 0;
+}
+
+.empty i {
+    font-size: 36px;
+    display: block;
+    margin-bottom: 10px;
+}

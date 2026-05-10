@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Tarea - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/creartarea.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/dashboard-profesor" class="btn-volver">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+            <h2>Crear Tarea</h2>
+        </div>
+
+        <form id="formTarea">
+
+            <div class="form-group">
+                <label>Nombre de la tarea</label>
+                <input type="text" id="titulo" placeholder="Ej: Tarea JavaScript funciones async" required>
+            </div>
+
+            <div class="form-group">
+                <label>Descripción <span class="opcional">(opcional)</span></label>
+                <textarea id="descripcion" placeholder="Explica en qué consiste la tarea..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Archivo adjunto <span class="opcional">(opcional)</span></label>
+                <div class="upload-zone" id="uploadZone">
+                    <input type="file" id="archivo" accept=".pdf,.zip,.rar,.doc,.docx,.png,.jpg,.jpeg,.txt">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>Arrastra un archivo aquí o haz clic para seleccionar</p>
+                    <p class="tipos">PDF, ZIP, RAR, DOC, DOCX, PNG, JPG, TXT</p>
+                    <p id="nombreArchivo"></p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Fecha y hora de entrega</label>
+                <div class="fecha-hora">
+                    <input type="date" id="fechaEntrega" required>
+                    <input type="time" id="horaEntrega" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-crear" id="btnCrear">
+                <i class="fa-solid fa-plus"></i>
+                Crear tarea
+            </button>
+
+            <p id="mensajeRespuesta"></p>
+        </form>
+    </div>
+
+    <script>
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        document.getElementById('archivo').addEventListener('change', function (e) {
+            const nombreEl = document.getElementById('nombreArchivo');
+            if (e.target.files[0]) {
+                nombreEl.innerText = '📎 ' + e.target.files[0].name;
+                nombreEl.style.display = 'block';
+            }
+        });
+
+        const zona = document.getElementById('uploadZone');
+        zona.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            zona.classList.add('drag');
+        });
+        zona.addEventListener('dragleave', function () {
+            zona.classList.remove('drag');
+        });
+        zona.addEventListener('drop', function (e) {
+            e.preventDefault();
+            zona.classList.remove('drag');
+            const archivo = e.dataTransfer.files[0];
+            if (archivo) {
+                document.getElementById('archivo').files = e.dataTransfer.files;
+                document.getElementById('nombreArchivo').innerText = '📎 ' + archivo.name;
+                document.getElementById('nombreArchivo').style.display = 'block';
+            }
+        });
+
+        const hoy = new Date().toISOString().split('T')[0];
+        document.getElementById('fechaEntrega').min = hoy;
+
+
+        document.getElementById('formTarea').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const titulo = document.getElementById('titulo').value.trim();
+            const descripcion = document.getElementById('descripcion').value.trim();
+            const fecha = document.getElementById('fechaEntrega').value;
+            const hora = document.getElementById('horaEntrega').value;
+            const archivoInput = document.getElementById('archivo');
+            const msg = document.getElementById('mensajeRespuesta');
+            const btn = document.getElementById('btnCrear');
+
+            if (!titulo || !fecha || !hora) {
+                msg.innerText = 'Por favor rellena todos los campos obligatorios';
+                msg.style.color = 'red';
+                return;
+            }
+
+            const fechaEntrega = new Date(fecha + 'T' + hora).toISOString();
+
+            const respuestaMaterias = await fetch('/materias/mis-materias', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datosMaterias = await respuestaMaterias.json();
+
+            if (!datosMaterias.materias || datosMaterias.materias.length === 0) {
+                msg.innerText = 'No tienes ninguna materia creada';
+                msg.style.color = 'red';
+                return;
+            }
+
+            const idMateriaActiva = localStorage.getItem('materiaActivaId');
+            let materiaActiva = datosMaterias.materias[0];
+
+            if (idMateriaActiva) {
+                const materiaEncontrada = datosMaterias.materias.find(function (m) {
+                    return m._id === idMateriaActiva;
+                });
+                if (materiaEncontrada) {
+                    materiaActiva = materiaEncontrada;
+                }
+            }
+
+            const formData = new FormData();
+            formData.append('titulo', titulo);
+            formData.append('descripcion', descripcion);
+            formData.append('materiaCodigo', materiaActiva.codigoClase);
+            formData.append('fechaEntrega', fechaEntrega);
+
+            if (archivoInput.files[0]) {
+                formData.append('archivo', archivoInput.files[0]);
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creando...';
+
+            const respuesta = await fetch('/materias/crear-tarea', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+            });
+
+            const resultado = await respuesta.json();
+
+            if (respuesta.ok) {
+                msg.innerText = '✅ Tarea creada correctamente';
+                msg.style.color = 'green';
+                setTimeout(function () {
+                    window.location.href = '/dashboard-profesor';
+                }, 1500);
+            } else {
+                msg.innerText = resultado.error || 'Error al crear la tarea';
+                msg.style.color = 'red';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-plus"></i> Crear tarea';
+            }
+        });
+    </script>
+</body>
+
+</html>

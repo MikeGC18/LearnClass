@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignatura - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/asignatura.css">
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <img src="/afbbf15d5e82a1c4fb5a55c4eacf3003-icono-de-gorro-de-graduacion.png" alt="LearnClass">
+            LearnClass
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="header">
+            <a href="/mis-asignaturas" class="btn-volver">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+            <div class="header-info">
+                <h1 id="nombreMateria">Cargando...</h1>
+                <p id="descripcionMateria"></p>
+            </div>
+        </div>
+
+       
+        <div class="tabs">
+            <button class="tab active" onclick="cambiarTab('material', this)">
+                <i class="fa-solid fa-folder-open"></i> Material
+            </button>
+            <button class="tab" onclick="cambiarTab('tareas', this)">
+                <i class="fa-solid fa-pen-to-square"></i> Tareas
+            </button>
+            <button class="tab" onclick="cambiarTab('tests', this)">
+                <i class="fa-solid fa-clipboard-question"></i> Tests Evaluativos
+            </button>
+        </div>
+
+     
+        <div class="panel active" id="panel-material">
+            <div class="card">
+                <h3>Material del profesor</h3>
+                <div id="listaMaterial">
+                    <div class="empty"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>
+                </div>
+            </div>
+        </div>
+
+       
+        <div class="panel" id="panel-tareas">
+            <div class="card">
+                <h3>Tareas pendientes</h3>
+                <div id="listaTareas">
+                    <div class="empty"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>
+                </div>
+            </div>
+        </div>
+
+   
+        <div class="panel" id="panel-tests">
+            <div class="card">
+                <h3>Tests evaluativos</h3>
+                <div id="listaTests">
+                    <div class="empty"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        const materiaId = window.location.pathname.split('/').pop();
+
+        function cambiarTab(panel, btn) {
+            document.querySelectorAll('.tab').forEach(function (tab) {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.panel').forEach(function (p) {
+                p.classList.remove('active');
+            });
+            btn.classList.add('active');
+            document.getElementById('panel-' + panel).classList.add('active');
+        }
+
+        function getIcono(nombre) {
+            if (nombre.includes('pdf')) return '<i class="fa-solid fa-file-pdf"></i>';
+            if (nombre.includes('zip') || nombre.includes('rar')) return '<i class="fa-solid fa-file-zipper"></i>';
+            if (nombre.includes('doc')) return '<i class="fa-solid fa-file-word"></i>';
+            if (nombre.includes('png') || nombre.includes('jpg')) return '<i class="fa-solid fa-file-image"></i>';
+            return '<i class="fa-solid fa-file"></i>';
+        }
+
+        function getIconClass(nombre) {
+            if (nombre.includes('pdf')) return 'icon-pdf';
+            if (nombre.includes('zip') || nombre.includes('rar')) return 'icon-zip';
+            if (nombre.includes('doc') || nombre.includes('ppt') || nombre.includes('xls')) return 'icon-doc';
+            if (nombre.includes('png') || nombre.includes('jpg')) return 'icon-img';
+            return 'icon-default';
+        }
+
+        async function cargarDatos() {
+
+            const respuestaMaterias = await fetch('/materias/mis-materias-alumno', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datosMaterias = await respuestaMaterias.json();
+            const materia = datosMaterias.materias.find(function (m) {
+                return m._id === materiaId;
+            });
+            if (materia) {
+                document.getElementById('nombreMateria').innerText = materia.nombre;
+                document.getElementById('descripcionMateria').innerText = materia.descripcion || '';
+            }
+
+            // Cargamos el material de la materia
+            const respuestaMaterial = await fetch('/materias/material?materiaId=' + materiaId, {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datosMaterial = await respuestaMaterial.json();
+            const listaMaterial = document.getElementById('listaMaterial');
+
+            if (respuestaMaterial.ok && datosMaterial.materiales.length > 0) {
+                let htmlMaterial = '';
+                for (let i = 0; i < datosMaterial.materiales.length; i++) {
+                    const m = datosMaterial.materiales[i];
+                    htmlMaterial += '<div class="material-item">';
+                    htmlMaterial += '<div class="material-info">';
+                    htmlMaterial += '<div class="material-icon ' + getIconClass(m.archivo) + '">' + getIcono(m.archivo) + '</div>';
+                    htmlMaterial += '<div class="material-datos">';
+                    htmlMaterial += '<strong>' + m.nombre + '</strong>';
+                    htmlMaterial += '<span>' + new Date(m.createdAt).toLocaleDateString('es-ES') + '</span>';
+                    htmlMaterial += '</div>';
+                    htmlMaterial += '</div>';
+                    htmlMaterial += '<a href="/' + m.archivo + '" target="_blank" class="btn-descargar"><i class="fa-solid fa-download"></i> Descargar</a>';
+                    htmlMaterial += '</div>';
+                }
+                listaMaterial.innerHTML = htmlMaterial;
+            } else {
+                listaMaterial.innerHTML = '<div class="empty"><i class="fa-solid fa-folder-open"></i> El profesor aún no ha subido material</div>';
+            }
+
+            const respuestaTareas = await fetch('/materias/tareas-alumno', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datosTareas = await respuestaTareas.json();
+            const listaTareas = document.getElementById('listaTareas');
+
+            let tareasDeLaMateria = [];
+            if (datosTareas.tareas) {
+                for (let i = 0; i < datosTareas.tareas.length; i++) {
+                    if (datosTareas.tareas[i].materia && datosTareas.tareas[i].materia._id === materiaId) {
+                        tareasDeLaMateria.push(datosTareas.tareas[i]);
+                    }
+                }
+            }
+
+            if (tareasDeLaMateria.length > 0) {
+                let htmlTareas = '';
+                for (let i = 0; i < tareasDeLaMateria.length; i++) {
+                    const tarea = tareasDeLaMateria[i];
+                    const fecha = new Date(tarea.fechaEntrega);
+                    const diferencia = fecha - new Date();
+
+                    let estado = '';
+                    if (tarea.yaEntrego) {
+                        estado = '<span class="pill green">Entregada</span>';
+                    } else if (diferencia < 0) {
+                        estado = '<span class="pill red">Vencida</span>';
+                    } else if (diferencia < 1000 * 60 * 60 * 48) {
+                        estado = '<span class="pill orange">Próxima a vencer</span>';
+                    } else {
+                        estado = '<span class="pill green">Abierta</span>';
+                    }
+
+                    htmlTareas += '<div class="tarea-item" onclick="window.location.href=\'/tarea-alumno/' + tarea._id + '\'">';
+                    htmlTareas += '<div class="tarea-info">';
+                    htmlTareas += '<strong>' + tarea.titulo + '</strong>';
+                    htmlTareas += '<span>Entrega: ' + fecha.toLocaleDateString('es-ES') + '</span>';
+                    htmlTareas += '</div>';
+                    htmlTareas += estado;
+                    htmlTareas += '</div>';
+                }
+                listaTareas.innerHTML = htmlTareas;
+            } else {
+                listaTareas.innerHTML = '<div class="empty"><i class="fa-solid fa-check-circle"></i> No hay tareas pendientes</div>';
+            }
+
+            const respuestaTests = await fetch('/tests/materia/' + materiaId, {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datosTests = await respuestaTests.json();
+            const listaTests = document.getElementById('listaTests');
+
+            if (respuestaTests.ok && datosTests.tests.length > 0) {
+                let htmlTests = '';
+                for (let i = 0; i < datosTests.tests.length; i++) {
+                    const test = datosTests.tests[i];
+                    const fecha = test.fechaEntrega ? new Date(test.fechaEntrega) : null;
+                    const diferencia = fecha ? fecha - new Date() : 1;
+
+                    let estado = '';
+                    if (diferencia < 0) {
+                        estado = '<span class="pill red">Vencido</span>';
+                    } else if (fecha && diferencia < 1000 * 60 * 60 * 48) {
+                        estado = '<span class="pill orange">Próximo a vencer</span>';
+                    } else {
+                        estado = '<span class="pill green">Disponible</span>';
+                    }
+
+                    const infoPregunta = fecha ? ' · Entrega: ' + fecha.toLocaleDateString('es-ES') : '';
+
+                    htmlTests += '<div class="tarea-item" onclick="window.location.href=\'/hacer-test/' + test._id + '\'" style="cursor:pointer;">';
+                    htmlTests += '<div class="tarea-info">';
+                    htmlTests += '<strong>📝 ' + test.titulo + '</strong>';
+                    htmlTests += '<span>' + test.preguntas.length + ' preguntas' + infoPregunta + '</span>';
+                    htmlTests += '</div>';
+                    htmlTests += estado;
+                    htmlTests += '</div>';
+                }
+                listaTests.innerHTML = htmlTests;
+            } else {
+                listaTests.innerHTML = '<div class="empty"><i class="fa-solid fa-clipboard-question"></i> No hay tests disponibles</div>';
+            }
+        }
+        cargarDatos();
+    </script>
+</body>
+
+</html>

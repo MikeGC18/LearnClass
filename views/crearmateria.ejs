@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Materia - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f4f4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 60px;
+        }
+
+        .card {
+            background: white;
+            width: 100%;
+            max-width: 420px;
+            padding: 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .logo img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .logo span {
+            font-size: 38px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        h2 {
+            font-size: 26px;
+            font-weight: 500;
+            color: #3a3f4b;
+            text-align: center;
+        }
+
+        .form-group {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .field .icon {
+            font-size: 16px;
+            color: #111;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .field input,
+        .field textarea {
+            width: 100%;
+            height: 30px;
+            border: none;
+            outline: none;
+            background: #d9d9d9;
+            padding: 0 10px;
+            font-size: 15px;
+            color: #111;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .field textarea {
+            height: 70px;
+            padding: 8px 10px;
+            resize: none;
+        }
+
+        .btn-crear {
+            width: 100%;
+            height: 40px;
+            background: #111;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 6px;
+        }
+
+        .btn-crear:hover {
+            background: #333;
+        }
+
+        .btn-crear:disabled {
+            background: #888;
+            cursor: not-allowed;
+        }
+
+        .btn-volver {
+            font-size: 13px;
+            color: #666;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: -8px;
+        }
+
+        .btn-volver:hover {
+            color: #111;
+        }
+
+        #mensajeRespuesta {
+            font-size: 13px;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background: #62b9e8;
+            color: #111;
+            text-align: center;
+            padding: 12px 10px 10px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="logo">
+            <img src="/afbbf15d5e82a1c4fb5a55c4eacf3003-icono-de-gorro-de-graduacion.png" alt="LearnClass">
+            <span>LearnClass</span>
+        </div>
+
+        <h2>Crear nueva materia</h2>
+
+        <div class="field">
+            <span class="icon">📚</span>
+            <input type="text" id="nombreMateria" placeholder="Nombre de la materia" required maxlength="50">
+        </div>
+
+        <div class="field">
+            <span class="icon">📝</span>
+            <textarea id="descripcionMateria" placeholder="Descripción (opcional)" maxlength="150"></textarea>
+        </div>
+
+        <button class="btn-crear" id="btnCrear">Crear materia</button>
+
+        <p id="mensajeRespuesta"></p>
+
+        <a href="/dashboard-profesor" class="btn-volver">
+            <i class="fa-solid fa-arrow-left"></i> Volver al dashboard
+        </a>
+    </div>
+
+    <footer class="footer">
+        <div>Plataforma educativa con derechos de autor 2026</div>
+        <div>@copyright</div>
+    </footer>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        document.getElementById('btnCrear').addEventListener('click', async () => {
+            const nombre = document.getElementById('nombreMateria').value.trim();
+            const descripcion = document.getElementById('descripcionMateria').value.trim();
+            const msg = document.getElementById('mensajeRespuesta');
+            const btn = document.getElementById('btnCrear');
+
+            if (!nombre) {
+                msg.innerText = 'Introduce el nombre de la materia';
+                msg.style.color = 'red';
+                return;
+            }
+
+            const codigoClase = nombre.substring(0, 3).toUpperCase() + '-' + Date.now().toString().slice(-5);
+
+            btn.disabled = true;
+            btn.innerText = 'Creando...';
+
+            try {
+                const res = await fetch('/materias/crear-materia', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ nombre, codigoClase, descripcion })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    msg.innerText = '✅ Materia creada correctamente';
+                    msg.style.color = 'green';
+                    setTimeout(() => window.location.href = '/dashboard-profesor', 1500);
+                } else {
+                    msg.innerText = result.error || 'Error al crear la materia';
+                    msg.style.color = 'red';
+                    btn.disabled = false;
+                    btn.innerText = 'Crear materia';
+                }
+            } catch (err) {
+                msg.innerText = 'Error de conexión';
+                msg.style.color = 'red';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

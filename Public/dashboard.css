@@ -1,0 +1,451 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f2f2f2;
+    color: #111;
+    overflow-x: hidden;
+}
+
+.page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
+.topbar {
+    height: 64px;
+    background: #62b9e8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    display: block;
+}
+
+.brand-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111;
+}
+
+.top-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.bell {
+    font-size: 24px;
+    line-height: 1;
+}
+
+/* CONTENT */
+.content {
+    flex: 1;
+    padding: 44px 72px 34px 78px;
+    position: relative;
+}
+
+.welcome h1 {
+    font-size: 42px;
+    font-weight: 400;
+    margin-bottom: 12px;
+}
+
+.welcome h2 {
+    font-size: 32px;
+    font-weight: 400;
+    margin-bottom: 14px;
+}
+
+.schedule {
+    display: flex;
+    gap: 42px;
+    margin-bottom: 42px;
+}
+
+.card {
+    width: 220px;
+    min-height: 122px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    padding: 14px 14px 16px;
+}
+
+.card h3 {
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.card p {
+    font-size: 15px;
+    line-height: 1.45;
+}
+
+.sidebar {
+    position: absolute;
+    top: 126px;
+    right: 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.side-btn {
+    width: 156px;
+    height: 40px;
+    border: none;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    text-align: left;
+    padding: 0 12px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.tasks {
+    margin-top: 18px;
+    max-width: 920px;
+}
+
+.tasks-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.tasks-icon {
+    font-size: 28px;
+}
+
+.tasks-title h2 {
+    font-size: 34px;
+    font-weight: 400;
+}
+
+.timeline {
+    position: relative;
+    margin-left: 4px;
+    padding-left: 50px;
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    left: 22px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: #d6d6d6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 26px;
+    display: flex;
+    align-items: center;
+}
+
+.date {
+    position: absolute;
+    left: -48px;
+    top: 2px;
+    width: 38px;
+    font-size: 13px;
+    color: #d0d0d0;
+    text-align: center;
+    line-height: 1.1;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #cfcfcf;
+    position: absolute;
+    left: 16px;
+    top: 24px;
+}
+
+.task-row {
+    width: 100%;
+    min-height: 34px;
+    background: #fff;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px 6px 14px;
+    margin-left: 40px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.task-text {
+    font-size: 14px;
+    color: #111;
+    text-decoration: underline;
+}
+
+.status {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+    min-width: 96px;
+    text-align: center;
+}
+
+.pending {
+    background: #f4a62a;
+    color: #111;
+}
+
+.delivered {
+    background: #79e37e;
+    color: #111;
+}
+
+.graded {
+    background: #3f6fe8;
+    color: #111;
+}
+
+@media (max-width: 1100px) {
+    .content {
+        padding: 30px 24px;
+    }
+
+    .sidebar {
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        margin: 0 0 20px;
+    }
+
+    .schedule {
+        flex-wrap: wrap;
+    }
+
+    .tasks {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 700px) {
+    .welcome h1 {
+        font-size: 30px;
+    }
+
+    .welcome h2 {
+        font-size: 24px;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 260px;
+    }
+
+    .task-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .status {
+        align-self: flex-end;
+    }
+}
+
+.step {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.step.active {
+    display: block;
+    opacity: 1;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+/* La línea vertical que une los puntos */
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 77px;
+    /* Ajusta según tu diseño para que pase por los puntos */
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e0e0e0;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.date {
+    width: 50px;
+    text-align: center;
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    background: #3498db;
+    border-radius: 50%;
+    margin: 0 15px;
+    z-index: 1;
+    /* Para que quede encima de la línea */
+}
+
+.task-row {
+    flex: 1;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.status.pending {
+    color: #f39c12;
+    font-weight: bold;
+}
+
+.status.delivered {
+    color: #2ecc71;
+    font-weight: bold;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    text-align: center;
+    gap: 12px;
+}
+
+.empty-icon {
+    font-size: 50px;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    color: #111;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #666;
+}
+
+.join-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.join-form input {
+    height: 38px;
+    padding: 0 12px;
+    border: none;
+    background: #d9d9d9;
+    font-size: 14px;
+    width: 220px;
+    outline: none;
+}
+
+.join-form button {
+    height: 38px;
+    padding: 0 20px;
+    background: #111;
+    color: white;
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.join-form button:hover {
+    background: #333;
+}
+
+.empty-tasks p {
+    color: #999;
+    font-size: 14px;
+    padding: 20px 0;
+}
+
+.btn-logout {
+    height: 32px;
+    padding: 0 14px;
+    background: #111;
+    color: white;
+    border: none;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-logout:hover {
+    background: #333;
+}
+
+.vencida {
+    background: #ff2b1f;
+    color: white;
+}

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensajes - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f2f2f2;
+        }
+
+        .topbar {
+            height: 64px;
+            background: #62b9e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 26px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .brand img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .container {
+            max-width: 760px;
+            margin: 36px auto;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-volver {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: #111;
+        }
+
+        .anuncio-card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border-left: 4px solid #62b9e8;
+            transition: all 0.2s;
+        }
+
+        .anuncio-card.no-leido {
+            border-left-color: #111;
+            background: #fafafa;
+        }
+
+        .anuncio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .anuncio-asunto {
+            font-size: 17px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .anuncio-meta {
+            font-size: 12px;
+            color: #a0aec0;
+            text-align: right;
+        }
+
+        .anuncio-materia {
+            display: inline-block;
+            background: #ebf5fb;
+            color: #2980b9;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+
+        .anuncio-mensaje {
+            font-size: 14px;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .badge-nuevo {
+            background: #111;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .empty {
+            text-align: center;
+            color: #a0aec0;
+            padding: 60px 0;
+        }
+
+        .empty i {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <img src="/afbbf15d5e82a1c4fb5a55c4eacf3003-icono-de-gorro-de-graduacion.png" alt="LearnClass">
+            LearnClass
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="header">
+            <a href="/dashboardalumno" class="btn-volver">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+            <h1>Mensajes</h1>
+        </div>
+
+        <div id="listaAnuncios">
+            <div class="empty">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Cargando mensajes...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        async function cargarAnuncios() {
+            try {
+                const res = await fetch('/anuncios/mis-anuncios', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const lista = document.getElementById('listaAnuncios');
+
+                if (res.ok && data.anuncios.length > 0) {
+                    lista.innerHTML = data.anuncios.map(a => {
+                        const leido = a.leido;
+                        const fecha = new Date(a.createdAt);
+                        const fechaStr = fecha.toLocaleDateString('es-ES') + ' ' + fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+                        return `
+                            <div class="anuncio-card ${leido ? '' : 'no-leido'}">
+                                <div class="anuncio-header">
+                                    <span class="anuncio-asunto">
+                                        ${!leido ? '<span class="badge-nuevo">NUEVO</span> ' : ''}
+                                        ${a.asunto}
+                                    </span>
+                                    <span class="anuncio-meta">${fechaStr}</span>
+                                </div>
+                                <div class="anuncio-materia">${a.materia ? a.materia.nombre : ''}</div>
+                                <div class="anuncio-mensaje">${a.mensaje}</div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    await fetch('/anuncios/marcar-leidos', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    localStorage.setItem('anunciosNoLeidos', '0');
+
+                } else {
+                    lista.innerHTML = `
+                        <div class="empty">
+                            <i class="fa-solid fa-bell-slash"></i>
+                            No tienes mensajes aún
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        cargarAnuncios();
+    </script>
+</body>
+
+</html>

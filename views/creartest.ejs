@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LearnClass - Crear Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/creartest.css" />
+</head>
+
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>LearnClass</span>
+            </div>
+            <div class="top-right">
+                <div class="avatar" id="avatarLetra"></div>
+                <a href="/dashboard-profesor"
+                    style="color:#111; font-size:14px; font-weight:600; text-decoration:none;">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </header>
+
+        <main class="page">
+            <section class="main-col">
+                <h1>Crear Test</h1>
+
+                <div class="field-group">
+                    <label>Título del test:</label>
+                    <input type="text" class="input-real" id="tituloTest" placeholder="Ej: Test Python">
+                </div>
+
+                <div class="field-group" style="margin-bottom:20px;">
+                    <label>Fecha límite:</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="date" class="input-real" id="fechaLimite" style="width:150px;">
+                        <input type="time" class="input-real" id="horaLimite" style="width:100px;">
+                    </div>
+                </div>
+
+                <!-- Botones para cambiar entre modo manual e IA -->
+                <div class="modo-toggle">
+                    <button class="modo-btn activo" id="botonModoManual" onclick="cambiarModoCreacion('manual')">
+                        ✏️ Manual
+                    </button>
+                    <button class="modo-btn" id="botonModoIA" onclick="cambiarModoCreacion('ia')">
+                        ✨ Generar con IA
+                    </button>
+                </div>
+
+                <!-- Panel que se muestra solo cuando el modo es IA -->
+                <div class="ia-panel" id="panelGeneradorIA">
+                    <h3><i class="fa-solid fa-wand-magic-sparkles" style="color:#a94df5;"></i> Generar preguntas con IA
+                    </h3>
+                    <input type="text" class="ia-input" id="temaDelTest"
+                        placeholder="Tema del test (ej: Python funciones, Historia de España...)">
+                    <div class="ia-row">
+                        <label>Número de preguntas:</label>
+                        <input type="number" class="ia-num" id="cantidadPreguntas" value="5" min="1" max="20">
+                    </div>
+                    <button class="btn-ia" id="botonGenerarConIA">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        Generar preguntas
+                    </button>
+                    <p id="mensajeGeneradorIA" style="font-size:13px; margin-top:8px; text-align:center;"></p>
+                </div>
+
+                <!-- Aquí se renderizan las preguntas dinámicamente -->
+                <div id="contenedorPreguntas"></div>
+
+                <!-- Botón para añadir una pregunta nueva manualmente -->
+                <button class="plus-btn" id="botonAnadirPregunta" onclick="anadirPreguntaVacia()"
+                    title="Añadir pregunta">+</button>
+
+                <p class="msg-respuesta" id="mensajePublicacion"></p>
+            </section>
+
+            <aside class="side-col">
+                <button class="side-btn" onclick="anadirPreguntaVacia()">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Nueva pregunta</span>
+                </button>
+
+                <button class="side-btn" id="botonPublicarTest">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Subir test</span>
+                </button>
+            </aside>
+        </main>
+    </div>
+
+    <script>
+        const tokenSesion = localStorage.getItem('token');
+        if (!tokenSesion) {
+            window.location.href = '/login';
+        }
+
+        const nombreProfesor = localStorage.getItem('userName') || 'P';
+        document.getElementById('avatarLetra').innerText = nombreProfesor.charAt(0).toUpperCase();
+
+        let listaDePreguntas = [];
+
+        let modoCreacionActual = 'manual';
+
+        function cambiarModoCreacion(nuevoModo) {
+            modoCreacionActual = nuevoModo;
+
+            if (nuevoModo === 'manual') {
+                document.getElementById('botonModoManual').classList.add('activo');
+                document.getElementById('botonModoIA').classList.remove('activo');
+                document.getElementById('panelGeneradorIA').classList.remove('visible');
+                document.getElementById('botonAnadirPregunta').style.display = 'block';
+            } else {
+                document.getElementById('botonModoManual').classList.remove('activo');
+                document.getElementById('botonModoIA').classList.add('activo');
+                document.getElementById('panelGeneradorIA').classList.add('visible');
+                document.getElementById('botonAnadirPregunta').style.display = 'none';
+            }
+        }
+
+        function anadirPreguntaVacia() {
+            anadirPregunta('', ['', '', '', ''], 0, false);
+        }
+
+        function anadirPregunta(textoPregunta, opcionesRespuesta, indiceRespuestaCorrecta, esRespuestaMultiple) {
+            const identificadorUnico = Date.now() + Math.random();
+
+            listaDePreguntas.push({
+                id: identificadorUnico,
+                texto: textoPregunta,
+                opciones: opcionesRespuesta,
+                correcta: indiceRespuestaCorrecta,
+                multiple: esRespuestaMultiple
+            });
+
+            mostrarPreguntas();
+        }
+
+
+        function mostrarPreguntas() {
+            const contenedor = document.getElementById('contenedorPreguntas');
+            let html = '';
+
+            for (let numeroPregunta = 0; numeroPregunta < listaDePreguntas.length; numeroPregunta++) {
+                const pregunta = listaDePreguntas[numeroPregunta];
+
+                html += '<div class="pregunta-block" id="bloque-pregunta-' + pregunta.id + '">';
+                html += '<div class="pregunta-num">Pregunta ' + (numeroPregunta + 1) + '</div>';
+
+         
+                html += '<button class="btn-eliminar-pregunta" onclick="eliminarPregunta(' + pregunta.id + ')">';
+                html += '<i class="fa-solid fa-xmark"></i></button>';
+
+              
+                html += '<textarea class="question-input" placeholder="Escribe la pregunta aquí..." oninput="actualizarTextoPregunta(' + pregunta.id + ', this.value)">' + pregunta.texto + '</textarea>';
+
+       
+                const textoTipo = pregunta.multiple ? 'Respuesta múltiple' : 'Única respuesta';
+                const colorToggle = pregunta.multiple ? 'blue' : 'white';
+                html += '<div class="mode-column" style="margin: 10px 0;">';
+                html += '<div class="mode-btn" style="cursor:pointer;" onclick="cambiarTipoRespuesta(' + pregunta.id + ')">';
+                html += '<span class="toggle ' + colorToggle + '"></span>';
+                html += '<span>' + textoTipo + '</span></div></div>';
+
+          
+                for (let indiceOpcion = 0; indiceOpcion < pregunta.opciones.length; indiceOpcion++) {
+                    const textoOpcion = pregunta.opciones[indiceOpcion];
+                    const esCorrecta = pregunta.correcta === indiceOpcion;
+                    const claseActiva = esCorrecta ? 'active' : '';
+                    const colorPunto = esCorrecta ? 'blue' : 'white';
+                    const badgeCorrecta = esCorrecta ? '<span class="respuesta-correcta-badge">✓ Correcta</span>' : '';
+
+                    html += '<div class="option-item ' + claseActiva + '" onclick="marcarComoCorrecta(' + pregunta.id + ', ' + indiceOpcion + ')" style="margin-bottom:10px;">';
+                    html += '<span class="dot ' + colorPunto + '"></span>';
+                    html += '<input class="option-input" placeholder="Opción ' + (indiceOpcion + 1) + '" value="' + textoOpcion + '" oninput="actualizarTextoOpcion(' + pregunta.id + ', ' + indiceOpcion + ', this.value)" onclick="event.stopPropagation()">';
+                    html += badgeCorrecta;
+                    html += '</div>';
+                }
+
+            
+                html += '<button class="plus-btn" onclick="anadirOpcionAPregunta(' + pregunta.id + ')" title="Añadir opción">+</button>';
+                html += '</div>';
+            }
+
+            contenedor.innerHTML = html;
+        }
+
+     
+        function eliminarPregunta(idPregunta) {
+            let nuevaLista = [];
+            for (let i = 0; i < listaDePreguntas.length; i++) {
+                if (listaDePreguntas[i].id !== idPregunta) {
+                    nuevaLista.push(listaDePreguntas[i]);
+                }
+            }
+            listaDePreguntas = nuevaLista;
+            mostrarPreguntas();
+        }
+
+
+        function actualizarTextoPregunta(idPregunta, nuevoTexto) {
+            for (let i = 0; i < listaDePreguntas.length; i++) {
+                if (listaDePreguntas[i].id === idPregunta) {
+                    listaDePreguntas[i].texto = nuevoTexto;
+                }
+            }
+        }
+
+
+        function actualizarTextoOpcion(idPregunta, indiceOpcion, nuevoTexto) {
+            for (let i = 0; i < listaDePreguntas.length; i++) {
+                if (listaDePreguntas[i].id === idPregunta) {
+                    listaDePreguntas[i].opciones[indiceOpcion] = nuevoTexto;
+                }
+            }
+        }
+
+        function marcarComoCorrecta(idPregunta, indiceOpcion) {
+            for (let i = 0; i < listaDePreguntas.length; i++) {
+                if (listaDePreguntas[i].id === idPregunta) {
+                    listaDePreguntas[i].correcta = indiceOpcion;
+                }
+            }
+            mostrarPreguntas();
+        }
+
+        function cambiarTipoRespuesta(idPregunta) {
+            for (let i = 0; i < listaDePreguntas.length; i++) {
+                if (listaDePreguntas[i].id === idPregunta) {
+                    listaDePreguntas[i].multiple = !listaDePreguntas[i].multiple;
+                }
+            }
+            mostrarPreguntas();
+        }
+
+        function anadirOpcionAPregunta(idPregunta) {
+            for (let i = 0; i < listaDePreguntas.length; i++) {
+                if (listaDePreguntas[i].id === idPregunta) {
+                    listaDePreguntas[i].opciones.push('');
+                }
+            }
+            mostrarPreguntas();
+        }
+
+        document.getElementById('botonGenerarConIA').addEventListener('click', async function () {
+            const temaEscrito = document.getElementById('temaDelTest').value.trim();
+            const numeroDePreguntasSolicitadas = parseInt(document.getElementById('cantidadPreguntas').value) || 5;
+            const mensajeEstado = document.getElementById('mensajeGeneradorIA');
+            const botonGenerar = document.getElementById('botonGenerarConIA');
+
+            if (!temaEscrito) {
+                mensajeEstado.innerText = 'Escribe un tema primero';
+                mensajeEstado.style.color = 'red';
+                return;
+            }
+
+            botonGenerar.disabled = true;
+            botonGenerar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...';
+            mensajeEstado.innerText = 'La IA está creando las preguntas...';
+            mensajeEstado.style.color = '#a94df5';
+
+            const respuestaServidor = await fetch('/ia/generar-preguntas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + tokenSesion
+                },
+                body: JSON.stringify({
+                    tema: temaEscrito,
+                    num: numeroDePreguntasSolicitadas
+                })
+            });
+
+            const datosRecibidos = await respuestaServidor.json();
+
+            if (respuestaServidor.ok) {
+                // Añadimos cada pregunta generada por la IA al formulario
+                for (let i = 0; i < datosRecibidos.preguntas.length; i++) {
+                    const preguntaGenerada = datosRecibidos.preguntas[i];
+                    anadirPregunta(preguntaGenerada.texto, preguntaGenerada.opciones, preguntaGenerada.correcta, false);
+                }
+                mensajeEstado.innerText = '✅ ' + datosRecibidos.preguntas.length + ' preguntas generadas';
+                mensajeEstado.style.color = 'green';
+                cambiarModoCreacion('manual');
+            } else {
+                mensajeEstado.innerText = 'Error al generar preguntas';
+                mensajeEstado.style.color = 'red';
+            }
+
+            botonGenerar.disabled = false;
+            botonGenerar.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generar preguntas';
+        });
+
+        document.getElementById('botonPublicarTest').addEventListener('click', async function () {
+            const tituloDelTest = document.getElementById('tituloTest').value.trim();
+            const fechaSeleccionada = document.getElementById('fechaLimite').value;
+            const horaSeleccionada = document.getElementById('horaLimite').value;
+            const mensajePublicacion = document.getElementById('mensajePublicacion');
+
+            if (!tituloDelTest) {
+                mensajePublicacion.innerText = 'Escribe un título para el test';
+                mensajePublicacion.style.color = 'red';
+                return;
+            }
+            if (listaDePreguntas.length === 0) {
+                mensajePublicacion.innerText = 'Añade al menos una pregunta';
+                mensajePublicacion.style.color = 'red';
+                return;
+            }
+
+
+            let todasRellenas = true;
+            for (let i = 0; i < listaDePreguntas.length; i++) {
+                if (!listaDePreguntas[i].texto.trim()) {
+                    todasRellenas = false;
+                }
+                for (let j = 0; j < listaDePreguntas[i].opciones.length; j++) {
+                    if (!listaDePreguntas[i].opciones[j].trim()) {
+                        todasRellenas = false;
+                    }
+                }
+            }
+            if (!todasRellenas) {
+                mensajePublicacion.innerText = 'Rellena todas las preguntas y opciones';
+                mensajePublicacion.style.color = 'red';
+                return;
+            }
+
+            const idMateriaActiva = localStorage.getItem('materiaActivaId');
+            let fechaLimiteISO = null;
+            if (fechaSeleccionada && horaSeleccionada) {
+                fechaLimiteISO = new Date(fechaSeleccionada + 'T' + horaSeleccionada).toISOString();
+            }
+
+            const respuesta = await fetch('/tests/crear', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + tokenSesion
+                },
+                body: JSON.stringify({
+                    titulo: tituloDelTest,
+                    preguntas: listaDePreguntas,
+                    materiaId: idMateriaActiva,
+                    fechaEntrega: fechaLimiteISO
+                })
+            });
+
+            const resultado = await respuesta.json();
+
+            if (respuesta.ok) {
+                mensajePublicacion.innerText = '✅ Test publicado correctamente';
+                mensajePublicacion.style.color = 'green';
+                setTimeout(function () {
+                    window.location.href = '/dashboard-profesor';
+                }, 1500);
+            } else {
+                mensajePublicacion.innerText = resultado.error || 'Error al publicar';
+                mensajePublicacion.style.color = 'red';
+            }
+        });
+
+        anadirPreguntaVacia();
+    </script>
+</body>
+
+</html>

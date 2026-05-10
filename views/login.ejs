@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnClass Login</title>
+    <link rel="stylesheet" href="/login.css">
+</head>
+
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <div class="login-logo">
+                <img src="/afbbf15d5e82a1c4fb5a55c4eacf3003-icono-de-gorro-de-graduacion.png" alt="LearnClass">
+                <span>LearnClass</span>
+            </div>
+            <h2>Iniciar sesión</h2>
+            <form id="loginForm">
+                <div class="field">
+                    <span class="icon">👤</span>
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+                <div class="field">
+                    <span class="icon">🔒</span>
+                    <input type="password" id="password" placeholder="Contraseña" required>
+                </div>
+                <button type="submit" class="btn-login">Entrar</button>
+                <a href="#" class="forgot">¿Has olvidado la contraseña?</a>
+            </form>
+        </div>
+        <footer class="login-footer">
+            <div>Plataforma educativa con derechos de autor 2026</div>
+            <div>@copyright</div>
+        </footer>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                try {
+                    const res = await fetch('/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        localStorage.setItem('userName', data.user.nombre);
+                        localStorage.setItem('userEmail', data.user.email);
+
+                        if (data.user.role === 'teacher') {
+                            window.location.href = '/dashboard-profesor';
+                        } else {
+                            window.location.href = '/dashboardalumno';
+                        }
+                    } else {
+                        alert(data.error || 'Error al iniciar sesión');
+                    }
+                } catch (err) {
+                    alert('Error de conexión');
+                }
+            });
+    </script>
+</body>
+
+</html>

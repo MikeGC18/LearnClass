@@ -1,0 +1,238 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/subirmaterial.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/dashboard-profesor" class="btn-volver">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+            <h2>Material de clase</h2>
+        </div>
+
+        <!-- Subir material -->
+        <div class="card">
+            <h3>Subir nuevo material</h3>
+
+            <div class="form-group">
+                <label>Nombre del material</label>
+                <input type="text" id="nombreMaterial" placeholder="Ej: Apuntes Tema 3" maxlength="60">
+            </div>
+
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" id="archivoMaterial"
+                    accept=".pdf,.zip,.rar,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.txt,.mp4">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <p>Arrastra un archivo aquí o haz clic para seleccionar</p>
+                <p class="tipos">PDF, ZIP, RAR, DOC, DOCX, PPT, XLS, PNG, JPG, TXT, MP4</p>
+            </div>
+
+            <p id="nombreArchivoSubir"></p>
+
+            <button class="btn-subir" id="btnSubir">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                Subir material
+            </button>
+            <p id="mensajeSubir"></p>
+        </div>
+
+        <!-- Lista de materiales -->
+        <div class="card">
+            <h3>Material subido</h3>
+            <div id="listaMaterial">
+                <div class="empty-material">
+                    <i class="fa-solid fa-folder-open"></i>
+                    Cargando materiales...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        let materiaActivaId = localStorage.getItem('materiaActivaId');
+
+
+        async function inicializar() {
+            if (!materiaActivaId) {
+                const respuesta = await fetch('/materias/mis-materias', {
+                    method: 'GET',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const datos = await respuesta.json();
+
+                if (respuesta.ok && datos.materias.length > 0) {
+                    materiaActivaId = datos.materias[0]._id;
+                    localStorage.setItem('materiaActivaId', materiaActivaId);
+                }
+            }
+
+     
+            cargarMateriales();
+        }
+        inicializar();
+
+      
+        document.getElementById('archivoMaterial').addEventListener('change', function (e) {
+            const el = document.getElementById('nombreArchivoSubir');
+            if (e.target.files[0]) {
+                el.innerText = '📎 ' + e.target.files[0].name;
+                el.style.display = 'block';
+            }
+        });
+
+  
+        const zona = document.getElementById('uploadZone');
+        zona.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            zona.classList.add('drag');
+        });
+        zona.addEventListener('dragleave', function () {
+            zona.classList.remove('drag');
+        });
+        zona.addEventListener('drop', function (e) {
+            e.preventDefault();
+            zona.classList.remove('drag');
+            const archivo = e.dataTransfer.files[0];
+            if (archivo) {
+                document.getElementById('archivoMaterial').files = e.dataTransfer.files;
+                document.getElementById('nombreArchivoSubir').innerText = '📎 ' + archivo.name;
+                document.getElementById('nombreArchivoSubir').style.display = 'block';
+            }
+        });
+
+  
+        function getIcono(nombre) {
+            const ext = nombre.split('.').pop().toLowerCase();
+            if (ext === 'pdf') return '<i class="fa-solid fa-file-pdf"></i>';
+            if (ext === 'zip' || ext === 'rar') return '<i class="fa-solid fa-file-zipper"></i>';
+            if (ext === 'doc' || ext === 'docx') return '<i class="fa-solid fa-file-word"></i>';
+            if (ext === 'ppt' || ext === 'pptx') return '<i class="fa-solid fa-file-powerpoint"></i>';
+            if (ext === 'xls' || ext === 'xlsx') return '<i class="fa-solid fa-file-excel"></i>';
+            if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') return '<i class="fa-solid fa-file-image"></i>';
+            return '<i class="fa-solid fa-file"></i>';
+        }
+
+    
+        function getIconClass(nombre) {
+            const ext = nombre.split('.').pop().toLowerCase();
+            if (ext === 'pdf') return 'icon-pdf';
+            if (ext === 'zip' || ext === 'rar') return 'icon-zip';
+            if (ext === 'doc' || ext === 'docx' || ext === 'ppt' || ext === 'pptx' || ext === 'xls' || ext === 'xlsx') return 'icon-doc';
+            if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') return 'icon-img';
+            return 'icon-default';
+        }
+
+     
+        async function cargarMateriales() {
+            const respuesta = await fetch('/materias/material?materiaId=' + materiaActivaId, {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datos = await respuesta.json();
+            const lista = document.getElementById('listaMaterial');
+
+            if (respuesta.ok && datos.materiales.length > 0) {
+                let html = '';
+                for (let i = 0; i < datos.materiales.length; i++) {
+                    const m = datos.materiales[i];
+                    html += '<div class="material-item">';
+                    html += '<div class="material-info">';
+                    html += '<div class="material-icon ' + getIconClass(m.archivo) + '">' + getIcono(m.archivo) + '</div>';
+                    html += '<div class="material-datos">';
+                    html += '<strong>' + m.nombre + '</strong>';
+                    html += '<span>' + new Date(m.createdAt).toLocaleDateString('es-ES') + '</span>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '<div class="material-acciones">';
+                    html += '<a href="/' + m.archivo + '" target="_blank" class="btn-descargar" title="Descargar"><i class="fa-solid fa-download"></i></a>';
+                    html += '<button class="btn-eliminar-mat" title="Eliminar" onclick="eliminarMaterial(\'' + m._id + '\')"><i class="fa-solid fa-trash"></i></button>';
+                    html += '</div>';
+                    html += '</div>';
+                }
+                lista.innerHTML = html;
+            } else {
+                lista.innerHTML = '<div class="empty-material"><i class="fa-solid fa-folder-open"></i> No hay material subido aún</div>';
+            }
+        }
+
+        
+        document.getElementById('btnSubir').addEventListener('click', async function () {
+            const nombre = document.getElementById('nombreMaterial').value.trim();
+            const archivo = document.getElementById('archivoMaterial').files[0];
+            const msg = document.getElementById('mensajeSubir');
+            const btn = document.getElementById('btnSubir');
+
+            if (!nombre) {
+                msg.innerText = 'Introduce un nombre para el material';
+                msg.style.color = 'red';
+                return;
+            }
+            if (!archivo) {
+                msg.innerText = 'Selecciona un archivo';
+                msg.style.color = 'red';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('nombre', nombre);
+            formData.append('archivo', archivo);
+            formData.append('materiaId', materiaActivaId);
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo...';
+
+            const respuesta = await fetch('/materias/subir-material', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+            });
+
+            const resultado = await respuesta.json();
+
+            if (respuesta.ok) {
+                msg.innerText = '✅ Material subido correctamente';
+                msg.style.color = 'green';
+                document.getElementById('nombreMaterial').value = '';
+                document.getElementById('archivoMaterial').value = '';
+                document.getElementById('nombreArchivoSubir').style.display = 'none';
+                cargarMateriales();
+            } else {
+                msg.innerText = resultado.error || 'Error al subir';
+                msg.style.color = 'red';
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Subir material';
+        });
+
+      
+        async function eliminarMaterial(id) {
+            if (!confirm('¿Seguro que quieres eliminar este material?')) return;
+
+            const respuesta = await fetch('/materias/material/' + id, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (respuesta.ok) {
+                cargarMateriales();
+            } else {
+                alert('Error al eliminar');
+            }
+        }
+    </script>
+</body>
+
+</html>

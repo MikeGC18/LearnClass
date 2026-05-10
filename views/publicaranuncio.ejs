@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publicar Anuncio - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f4f4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 60px;
+        }
+
+        .card {
+            background: white;
+            width: 100%;
+            max-width: 460px;
+            padding: 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .logo img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .logo span {
+            font-size: 38px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        h2 {
+            font-size: 26px;
+            font-weight: 500;
+            color: #3a3f4b;
+            text-align: center;
+        }
+
+        .field {
+            width: 100%;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .field .icon {
+            font-size: 16px;
+            color: #111;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+            margin-top: 7px;
+        }
+
+        .field input,
+        .field textarea,
+        .field select {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: #d9d9d9;
+            padding: 8px 10px;
+            font-size: 15px;
+            color: #111;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .field input {
+            height: 36px;
+        }
+
+        .field textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .field select {
+            height: 36px;
+        }
+
+        .btn-publicar {
+            width: 100%;
+            height: 40px;
+            background: #111;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-publicar:hover {
+            background: #333;
+        }
+
+        .btn-publicar:disabled {
+            background: #888;
+            cursor: not-allowed;
+        }
+
+        .btn-volver {
+            font-size: 13px;
+            color: #666;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: -6px;
+        }
+
+        .btn-volver:hover {
+            color: #111;
+        }
+
+        #mensajeRespuesta {
+            font-size: 13px;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background: #62b9e8;
+            color: #111;
+            text-align: center;
+            padding: 12px 10px 10px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="logo">
+            <img src="/afbbf15d5e82a1c4fb5a55c4eacf3003-icono-de-gorro-de-graduacion.png" alt="LearnClass">
+            <span>LearnClass</span>
+        </div>
+
+        <h2>Publicar anuncio</h2>
+
+        <div class="field">
+            <span class="icon">📋</span>
+            <select id="materiaSelect">
+                <option value="">Selecciona la materia</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <span class="icon">📌</span>
+            <input type="text" id="asunto" placeholder="Asunto (ej: Examen día 21)" maxlength="80" required>
+        </div>
+
+        <div class="field">
+            <span class="icon">✉️</span>
+            <textarea id="mensaje" placeholder="Escribe el mensaje para tus alumnos..." required></textarea>
+        </div>
+
+        <button class="btn-publicar" id="btnPublicar">Publicar anuncio</button>
+        <p id="mensajeRespuesta"></p>
+
+        <a href="/dashboard-profesor" class="btn-volver">
+            <i class="fa-solid fa-arrow-left"></i> Volver al dashboard
+        </a>
+    </div>
+
+    <footer class="footer">
+        <div>Plataforma educativa con derechos de autor 2026</div>
+        <div>@copyright</div>
+    </footer>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        async function cargarMaterias() {
+            const respuesta = await fetch('/materias/mis-materias', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datos = await respuesta.json();
+            const selector = document.getElementById('materiaSelect');
+
+            if (datos.materias && datos.materias.length > 0) {
+
+                // Añadimos cada materia como opción en el selector
+                for (let i = 0; i < datos.materias.length; i++) {
+                    const materia = datos.materias[i];
+                    const opcion = document.createElement('option');
+                    opcion.value = materia._id;
+                    opcion.innerText = materia.nombre;
+                    selector.appendChild(opcion);
+                }
+
+                // Preseleccionamos la materia activa si hay una guardada
+                const idMateriaActiva = localStorage.getItem('materiaActivaId');
+                if (idMateriaActiva) {
+                    selector.value = idMateriaActiva;
+                }
+            }
+        }
+        cargarMaterias();
+
+        document.getElementById('btnPublicar').addEventListener('click', async function () {
+            const materiaId = document.getElementById('materiaSelect').value;
+            const asunto = document.getElementById('asunto').value.trim();
+            const mensaje = document.getElementById('mensaje').value.trim();
+            const msg = document.getElementById('mensajeRespuesta');
+            const btn = document.getElementById('btnPublicar');
+
+            if (!materiaId) {
+                msg.innerText = 'Selecciona una materia';
+                msg.style.color = 'red';
+                return;
+            }
+            if (!asunto) {
+                msg.innerText = 'Escribe un asunto';
+                msg.style.color = 'red';
+                return;
+            }
+            if (!mensaje) {
+                msg.innerText = 'Escribe un mensaje';
+                msg.style.color = 'red';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = 'Publicando...';
+
+            const respuesta = await fetch('/anuncios/publicar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    materiaId: materiaId,
+                    asunto: asunto,
+                    mensaje: mensaje
+                })
+            });
+
+            const resultado = await respuesta.json();
+
+            if (respuesta.ok) {
+                msg.innerText = '✅ Anuncio publicado correctamente';
+                msg.style.color = 'green';
+                document.getElementById('asunto').value = '';
+                document.getElementById('mensaje').value = '';
+                setTimeout(function () {
+                    window.location.href = '/dashboard-profesor';
+                }, 1500);
+            } else {
+                msg.innerText = resultado.error || 'Error al publicar';
+                msg.style.color = 'red';
+            }
+
+            btn.disabled = false;
+            btn.innerText = 'Publicar anuncio';
+        });
+    </script>
+</body>
+
+</html>

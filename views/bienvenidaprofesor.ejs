@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido Profesor - LearnClass</title>
+    <link rel="stylesheet" href="/bienvenidaprofesor.css">
+</head>
+
+<body>
+    <div class="pagina-bienvenida">
+        <div class="tarjeta-bienvenida">
+
+            <div class="logo-learnclass">
+                <img src="/afbbf15d5e82a1c4fb5a55c4eacf3003-icono-de-gorro-de-graduacion.png" alt="LearnClass">
+                <span>LearnClass</span>
+            </div>
+
+            <div class="contenedor-mensajes">
+                <div class="mensaje-bienvenida" id="msg1">
+                    <span class="mensaje-icono">👋</span>
+                    <span class="mensaje-texto">Bienvenido/a, <strong id="nombreProfesor"></strong></span>
+                </div>
+                <div class="mensaje-bienvenida" id="msg2">
+                    <span class="mensaje-icono">🎓</span>
+                    <span class="mensaje-texto">Eres profesor en LearnClass</span>
+                </div>
+                <div class="mensaje-bienvenida" id="msg3">
+                    <span class="mensaje-icono">📋</span>
+                    <span class="mensaje-texto">Crea tu primera materia para empezar</span>
+                </div>
+            </div>
+
+            <div class="contenedor-formulario" id="contenedorFormulario">
+                <div class="formulario-crear-materia">
+                    <input type="text" id="nombreMateria" placeholder="Nombre de la materia (ej: Matemáticas)"
+                        maxlength="50" />
+                    <input type="text" id="descripcionMateria" placeholder="Descripción (opcional)" maxlength="100" />
+                    <button id="btnCrearMateria">Crear materia →</button>
+                </div>
+                <p id="mensajeCrearMateria" style="font-size: 13px; margin-top: 8px; text-align:center;"></p>
+            </div>
+
+        </div>
+
+        <footer class="pie-pagina">
+            <div>Plataforma educativa con derechos de autor 2026</div>
+            <div>@copyright</div>
+        </footer>
+    </div>
+
+    <script>
+
+        const nombreGuardado = localStorage.getItem('userName');
+        const emailGuardado = localStorage.getItem('userEmail');
+        const tokenGuardado = localStorage.getItem('token');
+
+        let nombreProfesor;
+        if (nombreGuardado) {
+            nombreProfesor = nombreGuardado;
+        } else {
+            nombreProfesor = 'Profesor';
+        }
+
+        let emailProfesor;
+        if (emailGuardado) {
+            emailProfesor = emailGuardado;
+        } else {
+            emailProfesor = '';
+        }
+
+        let tokenSesion;
+        if (tokenGuardado) {
+            tokenSesion = tokenGuardado;
+        } else {
+            tokenSesion = '';
+        }
+
+        document.getElementById('nombreProfesor').innerText = nombreProfesor;
+
+        const listaMensajes = document.querySelectorAll('.mensaje-bienvenida');
+        const contenedorFormulario = document.getElementById('contenedorFormulario');
+
+        contenedorFormulario.style.opacity = '0';
+        contenedorFormulario.style.transform = 'translateY(20px)';
+        contenedorFormulario.style.pointerEvents = 'none';
+
+
+        listaMensajes.forEach((mensaje, indice) => {
+            setTimeout(() => mensaje.classList.add('visible'), 300 + indice * 550);
+        });
+
+        setTimeout(() => {
+            contenedorFormulario.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            contenedorFormulario.style.opacity = '1';
+            contenedorFormulario.style.transform = 'translateY(0)';
+            contenedorFormulario.style.pointerEvents = 'auto';
+        }, 300 + listaMensajes.length * 550);
+
+
+        document.getElementById('btnCrearMateria').addEventListener('click', async () => {
+            const nombreMateria = document.getElementById('nombreMateria').value.trim();
+            const descripcionMateria = document.getElementById('descripcionMateria').value.trim();
+            const mensajeRespuesta = document.getElementById('mensajeCrearMateria');
+
+            if (!nombreMateria) {
+                mensajeRespuesta.innerText = 'Introduce el nombre de la materia';
+                mensajeRespuesta.style.color = 'red';
+                return;
+            }
+
+            const codigoClase = nombreMateria.substring(0, 3).toUpperCase() + '-' + Date.now().toString().slice(-5);
+
+            try {
+                const respuesta = await fetch('/materias/crear-materia', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${tokenSesion}`
+                    },
+                    body: JSON.stringify({
+                        nombre: nombreMateria,
+                        codigoClase: codigoClase,
+                        descripcion: descripcionMateria,
+                        profesorEmail: emailProfesor
+                    })
+                });
+
+                const resultado = await respuesta.json();
+
+                if (respuesta.ok) {
+                    mensajeRespuesta.innerText = `✅ Materia creada correctamente. Redirigiendo...`;
+                    mensajeRespuesta.style.color = 'green';
+                    localStorage.setItem('codigoMateria', codigoClase);
+                    setTimeout(() => {
+                        window.location.href = '/dashboard-profesor';
+                    }, 1800);
+                } else {
+                    mensajeRespuesta.innerText = resultado.error || 'Error al crear la materia';
+                    mensajeRespuesta.style.color = 'red';
+                }
+            } catch (err) {
+                mensajeRespuesta.innerText = 'Error de conexión';
+                mensajeRespuesta.style.color = 'red';
+            }
+        });
+    </script>
+</body>
+
+</html>

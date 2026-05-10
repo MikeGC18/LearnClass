@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LearnClass</title>
+    <link rel="stylesheet" href="dashboard-profesor.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Modal código de unión -->
+    <div class="modal-overlay" id="modalCodigo">
+        <div class="modal-box">
+            <h3>Código de unión</h3>
+            <p>Comparte este código con tus alumnos para que puedan unirse a la materia:</p>
+            <div class="codigo-display" id="codigoDisplay">---</div>
+            <button class="btn-copiar" id="btnCopiar">📋 Copiar código</button>
+            <p id="copiadoMsg" style="font-size:12px; color:green; margin-top:6px;"></p>
+            <button class="btn-cerrar-modal" id="btnCerrarModal">Cerrar</button>
+        </div>
+    </div>
+
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span>LearnClass</span>
+            </div>
+
+            <div class="top-right">
+                <div class="avatar" id="avatarLetra"></div>
+
+                <div class="role-select" id="materiaSelector" style="cursor:pointer; position:relative;">
+                    <span id="nombreMateria">Cargando...</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+
+                    <div class="materia-dropdown" id="materiaDropdown" style="display:none;">
+                        <div id="listaMaterias"></div>
+                        <div class="dropdown-item nueva" onclick="window.location.href='/crearmateria'">
+                            <i class="fa-solid fa-plus"></i>
+                            Crear otra materia
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <h1>Bienvenido, <span id="nombreHeader"></span></h1>
+
+            <section class="grid">
+                <div class="left">
+                    <div class="card class-card">
+                        <h2>Clase actual</h2>
+                        <p id="nombreClaseActual"><strong>Cargando...</strong></p>
+                        <button class="btn gray" onclick="window.location.href='/gestionar-alumnos'">
+                            <i class="fa-solid fa-user-gear"></i>
+                            Gestionar Estudiantes
+                        </button>
+                    </div>
+
+                    <div class="actions">
+                        <div class="action-card" onclick="window.location.href='/creartarea'">
+                            <i class="fa-regular fa-pen-to-square icon"></i>
+                            <span>Crear Tarea</span>
+                        </div>
+                        <div class="action-card" onclick="window.location.href='/crear-test'">
+                            <i class="fa-regular fa-file-lines icon"></i>
+                            <span>Crear Examen</span>
+                        </div>
+                        <div class="action-card" onclick="window.location.href='/publicar-anuncio'">
+                            <i class="fa-solid fa-bullhorn icon"></i>
+                            <span>Publicar anuncio</span>
+                        </div>
+                        <div class="action-card" onclick="window.location.href='/subir-material'">
+                            <i class="fa-solid fa-cloud-arrow-up icon"></i>
+                            <span>Subir material</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card tasks-card">
+                    <h2>Tareas y exámenes</h2>
+                </div>
+
+                <aside class="side-actions">
+                    <button class="side-btn">
+                        <i class="fa-regular fa-clipboard"></i>
+                        Gestionar notas
+                    </button>
+                    <button class="side-btn">
+                        <i class="fa-solid fa-envelope"></i>
+                        Mensajes
+                    </button>
+                    <button class="side-btn" id="btnVerCodigo">
+                        <i class="fa-solid fa-key"></i>
+                        Mostrar código de unión
+                    </button>
+                    <button class="side-btn" id="btnCerrarSesion">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        Cerrar sesión
+                    </button>
+                </aside>
+            </section>
+        </main>
+    </div>
+
+    <script>
+      
+        const tokenSesion = localStorage.getItem('token');
+        if (!tokenSesion) {
+            window.location.href = '/login';
+        }
+
+     
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', () => {
+            window.location.href = '/login';
+        });
+
+     
+        const nombreProfesor = localStorage.getItem('userName');
+        document.getElementById('nombreHeader').innerText = nombreProfesor;
+        document.getElementById('avatarLetra').innerText = nombreProfesor.charAt(0).toUpperCase();
+
+     
+        let materiaActual = null;
+
+    
+        async function cargarMaterias() {
+            const respuesta = await fetch('/materias/mis-materias', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + tokenSesion }
+            });
+            const datos = await respuesta.json();
+
+            if (respuesta.ok && datos.materias.length > 0) {
+
+          
+                const idGuardado = localStorage.getItem('materiaActivaId');
+                const materiaGuardada = datos.materias.find(m => m._id === idGuardado);
+
+         
+                if (materiaGuardada) {
+                    materiaActual = materiaGuardada;
+                } else {
+                    materiaActual = datos.materias[0];
+                }
+
+         
+                document.getElementById('nombreMateria').innerText = materiaActual.nombre;
+                document.getElementById('nombreClaseActual').innerHTML = '<strong>' + materiaActual.nombre + '</strong>';
+
+  
+                let htmlMaterias = '';
+                for (let i = 0; i < datos.materias.length; i++) {
+                    const materia = datos.materias[i];
+                    const claseActiva = materia._id === materiaActual._id ? 'activa' : '';
+                    htmlMaterias += '<div class="dropdown-item ' + claseActiva + '" onclick="seleccionarMateria(\'' + materia._id + '\', \'' + materia.nombre + '\')">';
+                    htmlMaterias += '<i class="fa-solid fa-book"></i> ' + materia.nombre;
+                    htmlMaterias += '</div>';
+                }
+                document.getElementById('listaMaterias').innerHTML = htmlMaterias;
+
+
+                cargarTareasYTests(materiaActual._id);
+
+            } else {
+                document.getElementById('nombreMateria').innerText = 'Sin materia';
+                document.getElementById('nombreClaseActual').innerText = 'Sin materia creada';
+            }
+        }
+        cargarMaterias();
+
+        function seleccionarMateria(idMateria, nombreMateria) {
+
+            localStorage.setItem('materiaActivaId', idMateria);
+
+            document.getElementById('nombreMateria').innerText = nombreMateria;
+            document.getElementById('nombreClaseActual').innerHTML = '<strong>' + nombreMateria + '</strong>';
+
+
+            document.getElementById('materiaDropdown').style.display = 'none';
+
+            cargarTareasYTests(idMateria);
+        }
+        document.getElementById('materiaSelector').addEventListener('click', function (e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('materiaDropdown');
+            if (dropdown.style.display === 'none') {
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', function () {
+            document.getElementById('materiaDropdown').style.display = 'none';
+        });
+
+        // Cargamos las tareas y tests de la materia seleccionada
+        async function cargarTareasYTests(idMateria) {
+            const contenedor = document.querySelector('.tasks-card');
+            let html = '';
+
+            const respuestaTareas = await fetch('/materias/mis-tareas?materiaId=' + idMateria, {
+                headers: { 'Authorization': 'Bearer ' + tokenSesion }
+            });
+            const datosTareas = await respuestaTareas.json();
+
+            if (respuestaTareas.ok && datosTareas.tareas.length > 0) {
+                for (let i = 0; i < datosTareas.tareas.length; i++) {
+                    const tarea = datosTareas.tareas[i];
+                    const fecha = new Date(tarea.fechaEntrega);
+                    const diferencia = fecha - new Date();
+
+                    let estado = '';
+                    if (diferencia < 0) {
+                        estado = '<span class="pill red">Vencida</span>';
+                    } else if (diferencia < 1000 * 60 * 60 * 48) {
+                        estado = '<span class="pill orange">Próxima a vencer</span>';
+                    } else {
+                        estado = '<span class="pill green">Abierta</span>';
+                    }
+
+                    html += '<div class="task-item" onclick="window.location.href=\'/tarea/' + tarea._id + '\'" style="cursor:pointer;">';
+                    html += tarea.titulo + ' (' + fecha.toLocaleDateString('es-ES') + ') - ' + estado;
+                    html += '</div>';
+                }
+            }
+
+            // Pedimos los tests al servidor
+            const respuestaTests = await fetch('/tests/mis-tests-profesor?materiaId=' + idMateria, {
+                headers: { 'Authorization': 'Bearer ' + tokenSesion }
+            });
+            const datosTests = await respuestaTests.json();
+
+            if (respuestaTests.ok && datosTests.tests.length > 0) {
+                for (let i = 0; i < datosTests.tests.length; i++) {
+                    const test = datosTests.tests[i];
+                    const fecha = test.fechaEntrega ? new Date(test.fechaEntrega) : null;
+                    const diferencia = fecha ? fecha - new Date() : 1;
+
+                    let estado = '';
+                    if (diferencia < 0) {
+                        estado = '<span class="pill red">Vencido</span>';
+                    } else if (fecha && diferencia < 1000 * 60 * 60 * 48) {
+                        estado = '<span class="pill orange">Próximo a vencer</span>';
+                    } else {
+                        estado = '<span class="pill green">Disponible</span>';
+                    }
+
+                    html += '<div class="task-item">';
+                    html += '📝 ' + test.titulo + ' (' + test.preguntas.length + ' preguntas) - ' + estado;
+                    html += '</div>';
+                }
+            }
+
+            if (html === '') {
+                html = '<p style="color:#999; font-size:14px; margin-top:10px;">No hay tareas ni exámenes aún</p>';
+            }
+
+            contenedor.innerHTML = '<h2>Tareas y exámenes</h2>' + html;
+        }
+
+        document.getElementById('btnVerCodigo').addEventListener('click', async function () {
+            const modal = document.getElementById('modalCodigo');
+            const display = document.getElementById('codigoDisplay');
+            modal.classList.add('active');
+            display.innerText = 'Cargando...';
+
+            const respuesta = await fetch('/materias/mis-materias', {
+                headers: { 'Authorization': 'Bearer ' + tokenSesion }
+            });
+            const datos = await respuesta.json();
+
+            if (respuesta.ok && datos.materias.length > 0) {
+                const idGuardado = localStorage.getItem('materiaActivaId');
+                const materiaActual = datos.materias.find(m => m._id === idGuardado) || datos.materias[0];
+                display.innerText = materiaActual.codigoClase;
+            } else {
+                display.innerText = 'Sin materia creada';
+            }
+        });
+
+        document.getElementById('btnCopiar').addEventListener('click', function () {
+            const codigo = document.getElementById('codigoDisplay').innerText;
+            navigator.clipboard.writeText(codigo);
+            document.getElementById('copiadoMsg').innerText = '✅ Código copiado';
+            setTimeout(function () {
+                document.getElementById('copiadoMsg').innerText = '';
+            }, 2000);
+        });
+
+        document.getElementById('btnCerrarModal').addEventListener('click', function () {
+            document.getElementById('modalCodigo').classList.remove('active');
+        });
+
+        document.getElementById('btnCerrarSesion').addEventListener('click', function () {
+            localStorage.clear();
+            window.location.href = '/login';
+        });
+    </script>
+
+</body>
+
+</html>

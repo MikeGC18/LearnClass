@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LearnClass - Alumno</title>
+    <link rel="stylesheet" href="/dashboard.css" />
+</head>
+
+<body>
+    <div class="page">
+        <header class="topbar">
+            <div class="brand">
+                <img src="afbbf15d5e82a1c4fb5a55c4eacf3003-icono-de-gorro-de-graduacion.png" alt="LearnClass"
+                    class="brand-icon" />
+                <span class="brand-name">LearnClass</span>
+            </div>
+            <div class="top-right">
+                <div class="avatar" id="avatarLetras"></div>
+                <div class="bell" id="campana" onclick="window.location.href='/mensajes'"
+                    style="cursor:pointer; position:relative;">🔔</div>
+                <button id="btnCerrarSesion" class="btn-logout">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <main class="content">
+            <section class="welcome">
+                <h1>Bienvenido, <span id="nombreAlumno"></span></h1>
+
+                <div id="loadingState" style="text-align:center; padding:40px; color:#999; font-size:15px;">
+                    Cargando...
+                </div>
+
+                <div class="empty-state" id="emptyState" style="display:none;">
+                    <div class="empty-icon">📭</div>
+                    <h3>Aún no estás matriculado en ninguna materia</h3>
+                    <p>Introduce el código de clase que te ha dado tu profesor para unirte</p>
+                    <div class="join-form">
+                        <input type="text" id="codigoClase" placeholder="Ej: MAT-2024-XK9" maxlength="20" />
+                        <button id="btnUnirse">Unirme →</button>
+                    </div>
+                    <p id="joinMsg" style="font-size: 13px; margin-top: 10px;"></p>
+                </div>
+
+                <div id="materiasSection" style="display:none;">
+                    <h2>Mis materias</h2>
+                    <div class="schedule" id="materiasContainer"></div>
+                </div>
+            </section>
+
+            <aside class="sidebar">
+                <button class="side-btn" onclick="window.location.href='/mis-asignaturas'">Asignaturas</button>
+                <button class="side-btn" onclick="window.location.href='/calificaciones'">Calificaciones</button>
+                <button class="side-btn">Asistencia</button>
+                <button class="side-btn" onclick="window.location.href='/mensajes'">Mensajes</button>
+            </aside>
+
+            <section class="tasks" id="tareasSection" style="display:none;">
+                <div class="tasks-title">
+                    <span class="tasks-icon">☰</span>
+                    <h2>Tareas pendientes</h2>
+                </div>
+                <div class="timeline" id="tareasContainer"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="modalUnirse"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center;">
+        <div
+            style="background:white; padding:30px; border-radius:14px; width:340px; display:flex; flex-direction:column; gap:14px;">
+            <h3 style="font-size:18px; font-weight:800; color:#111;">Unirme a otra materia</h3>
+            <input type="text" id="codigoClase2" placeholder="Introduce el código de clase" maxlength="20"
+                style="height:38px; padding:0 12px; border:none; background:#d9d9d9; font-size:14px; outline:none; width:100%;" />
+            <button id="btnUnirse2"
+                style="height:38px; background:#111; color:white; border:none; font-size:14px; font-weight:bold; cursor:pointer;">
+                Unirme →
+            </button>
+            <p id="joinMsg2" style="font-size:13px; text-align:center; min-height:18px;"></p>
+            <button id="btnCerrarModal"
+                style="height:36px; background:transparent; border:1px solid #ccc; font-size:13px; cursor:pointer; color:#666;">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function () {
+            window.location.href = '/login';
+        });
+
+
+        const nombreAlumno = localStorage.getItem('userName') || 'Alumno';
+        document.getElementById('nombreAlumno').innerText = nombreAlumno;
+        document.getElementById('avatarLetras').innerText = nombreAlumno.charAt(0).toUpperCase();
+
+        async function cargarNotificaciones() {
+            const respuesta = await fetch('/anuncios/no-leidos', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datos = await respuesta.json();
+            if (datos.count > 0) {
+                document.getElementById('campana').innerHTML = '🔔<sup style="background:#111;color:white;border-radius:50%;padding:1px 5px;font-size:11px;font-weight:bold;position:absolute;top:-4px;right:-6px;">' + datos.count + '</sup>';
+            }
+        }
+
+
+        async function cargarMaterias() {
+            const respuesta = await fetch('/materias/mis-materias-alumno', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datos = await respuesta.json();
+
+            document.getElementById('loadingState').style.display = 'none';
+
+            if (respuesta.ok && datos.materias.length > 0) {
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('materiasSection').style.display = 'block';
+
+                const contenedor = document.getElementById('materiasContainer');
+                let htmlMaterias = '';
+                for (let i = 0; i < datos.materias.length; i++) {
+                    const materia = datos.materias[i];
+                    htmlMaterias += '<article class="card" style="cursor:pointer;" onclick="window.location.href=\'/asignatura/' + materia._id + '\'">';
+                    htmlMaterias += '<h3>' + materia.nombre + '</h3>';
+                    htmlMaterias += '<p style="font-size:13px; color:#666; margin-top:6px;">' + (materia.descripcion || 'Sin descripción') + '</p>';
+                    htmlMaterias += '</article>';
+                }
+
+                htmlMaterias += '<article class="card" onclick="abrirModalUnirse()" style="cursor:pointer; border:2px dashed #ccc; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:100px;">';
+                htmlMaterias += '<span style="font-size:32px; color:#aaa;">+</span>';
+                htmlMaterias += '<p style="font-size:13px; color:#aaa;">Unirme a otra materia</p>';
+                htmlMaterias += '</article>';
+
+                contenedor.innerHTML = htmlMaterias;
+
+                cargarTareasYTests();
+                cargarNotificaciones();
+            } else {
+                document.getElementById('emptyState').style.display = 'flex';
+                cargarNotificaciones();
+            }
+        }
+        cargarMaterias();
+
+
+        async function cargarTareasYTests() {
+            const contenedor = document.getElementById('tareasContainer');
+            let html = '';
+
+            // Cargamos las tareas
+            const respuestaTareas = await fetch('/materias/tareas-alumno', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datosTareas = await respuestaTareas.json();
+
+            if (respuestaTareas.ok && datosTareas.tareas.length > 0) {
+                for (let i = 0; i < datosTareas.tareas.length; i++) {
+                    const tarea = datosTareas.tareas[i];
+                    const fecha = new Date(tarea.fechaEntrega);
+                    const dia = fecha.toLocaleDateString('es-ES', { weekday: 'short' });
+                    const numDia = fecha.getDate();
+                    const diferencia = fecha - new Date();
+
+                    let claseEstado = '';
+                    let textoEstado = '';
+                    if (tarea.yaEntrego) {
+                        claseEstado = 'delivered';
+                        textoEstado = 'Entregada';
+                    } else if (diferencia < 0) {
+                        claseEstado = 'vencida';
+                        textoEstado = 'Vencida';
+                    } else if (diferencia < 1000 * 60 * 60 * 48) {
+                        claseEstado = 'pending';
+                        textoEstado = 'Próxima a vencer';
+                    } else {
+                        claseEstado = 'delivered';
+                        textoEstado = 'Pendiente';
+                    }
+
+                    html += '<div class="timeline-item" onclick="window.location.href=\'/tarea-alumno/' + tarea._id + '\'" style="cursor:pointer;">';
+                    html += '<div class="date">' + dia + '<br>' + numDia + '</div>';
+                    html += '<div class="dot"></div>';
+                    html += '<div class="task-row">';
+                    html += '<div class="task-text">' + tarea.titulo + ' - <em>' + (tarea.materia ? tarea.materia.nombre : '') + '</em></div>';
+                    html += '<span class="status ' + claseEstado + '">' + textoEstado + '</span>';
+                    html += '</div>';
+                    html += '</div>';
+                }
+            }
+
+            const respuestaTests = await fetch('/tests/mis-tests', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const datosTests = await respuestaTests.json();
+
+            if (respuestaTests.ok && datosTests.tests.length > 0) {
+                for (let i = 0; i < datosTests.tests.length; i++) {
+                    const test = datosTests.tests[i];
+                    const fecha = test.fechaEntrega ? new Date(test.fechaEntrega) : null;
+                    const diferencia = fecha ? fecha - new Date() : 1;
+
+                    let claseEstado = 'delivered';
+                    let textoEstado = 'Disponible';
+                    if (diferencia < 0) {
+                        claseEstado = 'vencida';
+                        textoEstado = 'Vencido';
+                    } else if (fecha && diferencia < 1000 * 60 * 60 * 48) {
+                        claseEstado = 'pending';
+                        textoEstado = 'Próximo a vencer';
+                    }
+
+                    html += '<div class="timeline-item" onclick="window.location.href=\'/hacer-test/' + test._id + '\'" style="cursor:pointer;">';
+                    html += '<div class="date">📝<br>Test</div>';
+                    html += '<div class="dot" style="background:#a94df5;"></div>';
+                    html += '<div class="task-row">';
+                    html += '<div class="task-text">' + test.titulo + ' - <em>' + (test.materia ? test.materia.nombre : '') + '</em></div>';
+                    html += '<span class="status ' + claseEstado + '">' + textoEstado + '</span>';
+                    html += '</div>';
+                    html += '</div>';
+                }
+            }
+
+            if (html !== '') {
+                contenedor.innerHTML = html;
+                document.getElementById('tareasSection').style.display = 'block';
+            }
+        }
+
+        function abrirModalUnirse() {
+            document.getElementById('modalUnirse').style.display = 'flex';
+            document.getElementById('codigoClase2').value = '';
+            document.getElementById('joinMsg2').innerText = '';
+        }
+
+  
+        document.getElementById('btnCerrarModal').addEventListener('click', function () {
+            document.getElementById('modalUnirse').style.display = 'none';
+        });
+
+  
+        async function unirseMateria(codigoId, msgId) {
+            const codigo = document.getElementById(codigoId).value.trim();
+            const mensajeUnirse = document.getElementById(msgId);
+
+            if (!codigo) {
+                mensajeUnirse.innerText = 'Introduce un código de clase';
+                mensajeUnirse.style.color = 'red';
+                return;
+            }
+
+            const respuesta = await fetch('/materias/unirse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ codigoClase: codigo })
+            });
+
+            const resultado = await respuesta.json();
+            if (respuesta.ok) {
+                mensajeUnirse.innerText = '✅ Te has unido correctamente';
+                mensajeUnirse.style.color = 'green';
+                setTimeout(function () {
+                    location.reload();
+                }, 1500);
+            } else {
+                mensajeUnirse.innerText = resultado.error || 'Código incorrecto';
+                mensajeUnirse.style.color = 'red';
+            }
+        }
+
+        document.getElementById('btnUnirse').addEventListener('click', function () {
+            unirseMateria('codigoClase', 'joinMsg');
+        });
+        document.getElementById('btnUnirse2').addEventListener('click', function () {
+            unirseMateria('codigoClase2', 'joinMsg2');
+        });
+
+        document.getElementById('btnCerrarSesion').addEventListener('click', function () {
+            localStorage.clear();
+            window.location.href = '/login';
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,172 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f4f4;
+}
+
+.welcome-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 60px;
+    background: #f4f4f4;
+}
+
+.welcome-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    width: 100%;
+    max-width: 460px;
+    padding: 0 20px;
+}
+
+.welcome-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.welcome-logo img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.welcome-logo span {
+    font-size: 40px;
+    font-weight: 700;
+    color: #111;
+}
+
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+}
+
+/* Cada mensaje de bienvenida */
+.mensaje-bienvenida {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    opacity: 0;
+    transform: translateX(-30px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.mensaje-bienvenida:first-child {
+    border-top: 3px solid #111;
+}
+
+.mensaje-bienvenida:last-child {
+    border-bottom: 3px solid #111;
+}
+
+.mensaje-bienvenida.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Icono del mensaje */
+.mensaje-icono {
+    font-size: 22px;
+    flex-shrink: 0;
+    width: 32px;
+    text-align: center;
+}
+
+/* Texto del mensaje */
+.mensaje-texto {
+    font-size: 17px;
+    color: #3a3f4b;
+    line-height: 1.4;
+}
+
+.mensaje-texto strong {
+    color: #111;
+    font-weight: 700;
+}
+
+.btn-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-empezar {
+    width: 340px;
+    height: 48px;
+    background: #111;
+    color: white;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+}
+
+.btn-empezar:hover {
+    background: #333;
+}
+
+.btn-empezar:active {
+    transform: scale(0.98);
+}
+
+.btn-empezar:disabled {
+    background: #888;
+    cursor: not-allowed;
+}
+
+.btn-arrow {
+    font-size: 18px;
+    transition: transform 0.2s;
+}
+
+.btn-empezar:hover .btn-arrow {
+    transform: translateX(4px);
+}
+
+.welcome-footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background: #62b9e8;
+    color: #111;
+    text-align: center;
+    padding: 12px 10px 10px;
+    font-size: 13px;
+}
+
+@media (max-width: 700px) {
+    .btn-empezar {
+        width: 280px;
+    }
+
+    .welcome-logo span {
+        font-size: 32px;
+    }
+
+    .mensaje-texto {
+        font-size: 15px;
+    }
+}

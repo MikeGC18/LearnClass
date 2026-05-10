@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestionar Alumnos - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/gestionaralumno.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/dashboard-profesor" class="btn-volver">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+            <div class="header-right">
+                <span class="total-badge" id="totalAlumnos">0 alumnos</span>
+                <h2 style="font-size:20px;">Estudiantes en tu clase</h2>
+            </div>
+        </div>
+        <div id="listaAlumnos">Cargando lista...</div>
+    </div>
+
+    <!-- Modal detalle alumno -->
+    <div id="modalZoom" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="cerrarModal()">&times;</span>
+            <div class="avatar-zoom" id="zoomAvatar">?</div>
+            <h2 id="zoomNombre" style="font-size:20px; margin-bottom:4px;">---</h2>
+            <p id="zoomUser" style="color:#718096; font-size:14px;">@usuario</p>
+            <hr>
+            <div class="modal-info">
+                <p><i class="fa-solid fa-envelope"></i> <span id="zoomEmail">---</span></p>
+                <p><i class="fa-solid fa-building-columns"></i> <span id="zoomInstitucion">---</span></p>
+                <p><i class="fa-solid fa-graduation-cap"></i> Rol: Estudiante</p>
+                <p><i class="fa-solid fa-calendar-check"></i> Estado: Activo</p>
+            </div>
+            <button class="btn-echar-modal" id="btnEcharModal">
+                <i class="fa-solid fa-user-slash"></i>
+                Expulsar de la clase
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        let alumnoSeleccionado = null;
+        const materiaActivaId = localStorage.getItem('materiaActivaId') || '';
+
+        async function cargarAlumnos() {
+            try {
+                const res = await fetch(`/materias/mis-alumnos?materiaId=${materiaActivaId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const alumnos = data.alumnos || [];
+                const contenedor = document.getElementById('listaAlumnos');
+
+                document.getElementById('totalAlumnos').innerText = `${alumnos.length} alumno${alumnos.length !== 1 ? 's' : ''}`;
+
+                if (alumnos.length === 0) {
+                    contenedor.innerHTML = "<p style='text-align:center; color:#718096; padding:30px 0;'>Aún no hay alumnos unidos a tu materia.</p>";
+                    return;
+                }
+
+                contenedor.innerHTML = '';
+                alumnos.forEach(alumno => {
+                    const card = document.createElement('div');
+                    card.className = 'alumno-card';
+                    card.innerHTML = `
+                        <div class="alumno-info">
+                            <div class="alumno-avatar">${alumno.nombre.charAt(0).toUpperCase()}</div>
+                            <div class="alumno-datos">
+                                <strong>${alumno.nombre}</strong>
+                                <span>${alumno.email}</span>
+                            </div>
+                        </div>
+                        <div class="alumno-acciones">
+                            <button class="btn-ver" title="Ver detalle" onclick="abrirZoom(${JSON.stringify(alumno).replace(/"/g, '&quot;')})">
+                                <i class="fa-solid fa-magnifying-glass-plus"></i>
+                            </button>
+                            <button class="btn-echar" title="Expulsar" onclick="echarAlumno('${alumno._id}', '${alumno.nombre}')">
+                                <i class="fa-solid fa-user-slash"></i>
+                            </button>
+                        </div>
+                    `;
+                    contenedor.appendChild(card);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function abrirZoom(alumno) {
+            alumnoSeleccionado = alumno;
+            document.getElementById('zoomAvatar').innerText = alumno.nombre.charAt(0).toUpperCase();
+            document.getElementById('zoomNombre').innerText = alumno.nombre;
+            document.getElementById('zoomEmail').innerText = alumno.email;
+            document.getElementById('zoomUser').innerText = '@' + (alumno.nombreUsuario || 'estudiante');
+            document.getElementById('zoomInstitucion').innerText = alumno.institucion || 'No especificada';
+            document.getElementById('modalZoom').classList.add('active');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalZoom').classList.remove('active');
+            alumnoSeleccionado = null;
+        }
+
+        async function echarAlumno(alumnoId, nombre) {
+            if (!confirm(`¿Seguro que quieres expulsar a ${nombre} de la clase?`)) return;
+
+            try {
+                const res = await fetch('/materias/expulsar-alumno', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ alumnoId, materiaId: materiaActivaId })
+                });
+
+                const result = await res.json();
+                if (res.ok) {
+                    cerrarModal();
+                    cargarAlumnos();
+                } else {
+                    alert(result.error || 'Error al expulsar');
+                }
+            } catch (e) {
+                alert('Error de conexión');
+            }
+        }
+
+        document.getElementById('btnEcharModal').addEventListener('click', () => {
+            if (alumnoSeleccionado) echarAlumno(alumnoSeleccionado._id, alumnoSeleccionado.nombre);
+        });
+
+        window.onclick = (e) => { if (e.target.id === 'modalZoom') cerrarModal(); }
+
+        cargarAlumnos();
+    </script>
+</body>
+
+</html>

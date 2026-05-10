@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido - LearnClass</title>
+    <link rel="stylesheet" href="/bienvenida.css">
+</head>
+
+<body>
+    <div class="welcome-page">
+        <div class="welcome-card">
+
+            <div class="welcome-logo">
+                <img src="/afbbf15d5e82a1c4fb5a55c4eacf3003-icono-de-gorro-de-graduacion.png" alt="LearnClass">
+                <span>LearnClass</span>
+            </div>
+
+            <div class="messages-container">
+                <div class="mensaje-bienvenida" id="msg1">
+                    <span class="mensaje-icono">👋</span>
+                    <span class="mensaje-texto">Bienvenido/a, <strong id="nombreUsuario"></strong></span>
+                </div>
+                <div class="mensaje-bienvenida" id="msg2">
+                    <span class="mensaje-icono">🎓</span>
+                    <span class="mensaje-texto">Esta es tu plataforma educativa</span>
+                </div>
+                <div class="mensaje-bienvenida" id="msg3">
+                    <span class="mensaje-icono">📚</span>
+                    <span class="mensaje-texto">Accede a tus materias y tareas fácilmente</span>
+                </div>
+                <div class="mensaje-bienvenida" id="msg4">
+                    <span class="mensaje-icono">🚀</span>
+                    <span class="mensaje-texto">Todo listo para empezar</span>
+                </div>
+            </div>
+
+            <button class="btn-empezar" id="btnEmpezar">Empezar →</button>
+
+        </div>
+
+        <footer class="welcome-footer">
+            <div>Plataforma educativa con derechos de autor 2026</div>
+            <div>@copyright</div>
+        </footer>
+    </div>
+
+    <script> 
+        // Cogemos el email y nombre del localStorage
+            const emailUsuario = localStorage.getItem('userEmail');
+            const nombreGuardado = localStorage.getItem('userName');
+
+            // Si hay nombre lo usamos, si no usamos la parte del email antes del @
+            let nombreUsuario;
+            if (nombreGuardado) {
+                nombreUsuario = nombreGuardado;
+            } else {
+                nombreUsuario = emailUsuario.split('@')[0];
+            }
+
+            document.getElementById('nombreUsuario').innerText = nombreUsuario;
+
+        const listaMensajes = document.querySelectorAll('.mensaje-bienvenida');
+        const botonEmpezar = document.getElementById('btnEmpezar');
+
+        botonEmpezar.style.opacity = '0';
+        botonEmpezar.style.pointerEvents = 'none';
+
+  
+        listaMensajes.forEach((mensaje) => {
+            mensaje.style.opacity = '0';
+            mensaje.style.transform = 'translateY(24px)';
+        });
+
+        listaMensajes.forEach((mensaje, indice) => {
+            setTimeout(() => {
+                mensaje.style.opacity = '1';
+                mensaje.style.transform = 'translateY(0)';
+            }, 500 + indice * 600);
+        });
+        setTimeout(() => {
+            botonEmpezar.style.opacity = '1';
+            botonEmpezar.style.pointerEvents = 'auto';
+        }, 500 + listaMensajes.length * 600);
+
+        botonEmpezar.addEventListener('click', () => {
+            window.location.href = '/dashboardalumno';
+        });
+    </script>
+</body>
+
+</html>

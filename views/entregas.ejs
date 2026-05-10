@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entregas - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/entregas.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="#" id="btnVolver" class="btn-volver">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+            <div class="header-info">
+                <h2 id="tituloTarea">Cargando...</h2>
+                <p id="fechaTarea"></p>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card entregadas">
+                <div class="num" id="numEntregadas">0</div>
+                <div class="label">Entregadas</div>
+            </div>
+            <div class="stat-card pendientes">
+                <div class="num" id="numPendientes">0</div>
+                <div class="label">Sin entregar</div>
+            </div>
+            <div class="stat-card calificadas">
+                <div class="num" id="numCalificadas">0</div>
+                <div class="label">Calificadas</div>
+            </div>
+        </div>
+
+        <!-- Entregas -->
+        <div class="card">
+            <h3>Entregas recibidas</h3>
+            <div id="listaEntregas">
+                <div class="sin-entregas">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    Cargando entregas...
+                </div>
+            </div>
+        </div>
+
+        <!-- Sin entregar -->
+        <div class="card" id="cardSinEntregar" style="display:none;">
+            <h3>Sin entregar</h3>
+            <div id="listaSinEntregar" class="no-entregaron"></div>
+        </div>
+    </div>
+
+    <!-- Modal calificar -->
+    <div class="modal" id="modalCalificar">
+        <div class="modal-content">
+            <button class="close-modal" onclick="cerrarModal()">&times;</button>
+            <h3>Calificar entrega</h3>
+
+            <div id="alumnoInfo" style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+                <div class="alumno-avatar" id="modalAvatar">?</div>
+                <div>
+                    <strong id="modalNombre" style="font-size:16px;"></strong>
+                    <p id="modalEmail" style="font-size:13px; color:#718096;"></p>
+                </div>
+            </div>
+
+            <div id="modalArchivo" style="display:none;" class="archivo-entrega">
+                <i class="fa-solid fa-paperclip" style="color:#3498db;"></i>
+                <a id="modalArchivoLink" href="#" target="_blank">Ver archivo entregado</a>
+            </div>
+
+            <div id="modalComentario" style="display:none;" class="comentario-entrega">
+                <i class="fa-solid fa-comment" style="color:#3498db; margin-right:8px;"></i>
+                <span id="modalComentarioTexto"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Nota (0 - 10)</label>
+                <input type="number" id="inputNota" min="0" max="10" step="0.5" placeholder="Ej: 8.5">
+            </div>
+
+            <div class="form-group">
+                <label>Feedback <span style="font-weight:400; text-transform:none;">(opcional)</span></label>
+                <textarea id="inputFeedback" placeholder="Escribe un comentario para el alumno..."></textarea>
+            </div>
+
+            <button class="btn-calificar" id="btnCalificar">
+                <i class="fa-solid fa-star"></i>
+                Guardar calificación
+            </button>
+            <p id="mensajeCalificar"></p>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        const tareaId = window.location.pathname.split('/').pop();
+        let entregaSeleccionada = null;
+
+        document.getElementById('btnVolver').href = `/tarea/${tareaId}`;
+
+        async function cargarEntregas() {
+            try {
+                const res = await fetch(`/materias/tarea/${tareaId}/entregas`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                document.getElementById('tituloTarea').innerText = data.tarea.titulo;
+                document.getElementById('fechaTarea').innerText = 'Entrega: ' + new Date(data.tarea.fechaEntrega).toLocaleDateString('es-ES');
+
+                const entregas = data.entregas || [];
+                const sinEntregar = data.sinEntregar || [];
+                const calificadas = entregas.filter(e => e.calificacion !== null && e.calificacion !== undefined);
+
+                document.getElementById('numEntregadas').innerText = entregas.length;
+                document.getElementById('numPendientes').innerText = sinEntregar.length;
+                document.getElementById('numCalificadas').innerText = calificadas.length;
+
+                const listaEntregas = document.getElementById('listaEntregas');
+
+                if (entregas.length > 0) {
+                    listaEntregas.innerHTML = entregas.map(e => {
+                        const tieneNota = e.calificacion !== null && e.calificacion !== undefined;
+                        return `
+                            <div class="entrega-item" onclick="abrirCalificar(${JSON.stringify(e).replace(/"/g, '&quot;')})">
+                                <div class="entrega-info">
+                                    <div class="alumno-avatar">${e.alumno.nombre.charAt(0).toUpperCase()}</div>
+                                    <div class="alumno-datos">
+                                        <strong>${e.alumno.nombre}</strong>
+                                        <span>Entregado el ${new Date(e.fechaEntrega).toLocaleDateString('es-ES')} a las ${new Date(e.fechaEntrega).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
+                                </div>
+                                <div class="entrega-estado">
+                                    ${tieneNota ? `<span class="nota-badge">${e.calificacion}/10</span><span class="pill calificada">Calificada</span>` : `<span class="pill entregada">Entregada</span>`}
+                                    <i class="fa-solid fa-chevron-right" style="color:#cbd5e0;"></i>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    listaEntregas.innerHTML = `
+                        <div class="sin-entregas">
+                            <i class="fa-solid fa-inbox"></i>
+                            Ningún alumno ha entregado aún
+                        </div>
+                    `;
+                }
+
+                if (sinEntregar.length > 0) {
+                    document.getElementById('cardSinEntregar').style.display = 'block';
+                    document.getElementById('listaSinEntregar').innerHTML = sinEntregar.map(a => `
+                        <div class="alumno-item">
+                            <div class="alumno-avatar">${a.nombre.charAt(0).toUpperCase()}</div>
+                            <span>${a.nombre} · ${a.email}</span>
+                        </div>
+                    `).join('');
+                }
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        cargarEntregas();
+
+        function abrirCalificar(entrega) {
+            entregaSeleccionada = entrega;
+
+            document.getElementById('modalAvatar').innerText = entrega.alumno.nombre.charAt(0).toUpperCase();
+            document.getElementById('modalNombre').innerText = entrega.alumno.nombre;
+            document.getElementById('modalEmail').innerText = entrega.alumno.email;
+
+            if (entrega.archivo) {
+                document.getElementById('modalArchivo').style.display = 'flex';
+                document.getElementById('modalArchivoLink').href = '/' + entrega.archivo;
+            } else {
+                document.getElementById('modalArchivo').style.display = 'none';
+            }
+
+            if (entrega.comentario) {
+                document.getElementById('modalComentario').style.display = 'block';
+                document.getElementById('modalComentarioTexto').innerText = entrega.comentario;
+            } else {
+                document.getElementById('modalComentario').style.display = 'none';
+            }
+
+            document.getElementById('inputNota').value = entrega.calificacion || '';
+            document.getElementById('inputFeedback').value = entrega.feedback || '';
+            document.getElementById('mensajeCalificar').innerText = '';
+
+            document.getElementById('modalCalificar').classList.add('active');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalCalificar').classList.remove('active');
+            entregaSeleccionada = null;
+        }
+
+        document.getElementById('btnCalificar').addEventListener('click', async () => {
+            const nota = parseFloat(document.getElementById('inputNota').value);
+            const feedback = document.getElementById('inputFeedback').value.trim();
+            const msg = document.getElementById('mensajeCalificar');
+            const btn = document.getElementById('btnCalificar');
+
+            if (isNaN(nota) || nota < 0 || nota > 10) {
+                msg.innerText = 'La nota debe ser entre 0 y 10';
+                msg.style.color = 'red';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
+            try {
+                const res = await fetch(`/materias/calificar-entrega/${tareaId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        alumnoId: entregaSeleccionada.alumno._id,
+                        calificacion: nota,
+                        feedback
+                    })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    msg.innerText = '✅ Calificación guardada';
+                    msg.style.color = 'green';
+                    setTimeout(() => {
+                        cerrarModal();
+                        cargarEntregas();
+                    }, 1000);
+                } else {
+                    msg.innerText = result.error || 'Error al calificar';
+                    msg.style.color = 'red';
+                }
+            } catch (err) {
+                msg.innerText = 'Error de conexión';
+                msg.style.color = 'red';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-star"></i> Guardar calificación';
+            }
+        });
+
+        window.onclick = (e) => { if (e.target.id === 'modalCalificar') cerrarModal(); }
+    </script>
+</body>
+
+</html>

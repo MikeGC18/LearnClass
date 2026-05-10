@@ -1,0 +1,258 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f4f7f6;
+    padding: 40px 20px;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-volver {
+    text-decoration: none;
+    color: #3498db;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+}
+
+.header h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #111;
+}
+
+.card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+    font-size: 15px;
+    color: #2d3748;
+}
+
+.info-row i {
+    color: #a0aec0;
+    width: 20px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.info-row strong {
+    color: #111;
+}
+
+.pill {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.pill.green {
+    background: #95e686;
+}
+
+.pill.orange {
+    background: #ff9e1f;
+}
+
+.pill.red {
+    background: #ff2b1f;
+    color: white;
+}
+
+/* Formulario edición */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="time"],
+textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    color: #2d3748;
+    background: #f8fafc;
+    outline: none;
+    transition: border 0.2s;
+}
+
+input:focus,
+textarea:focus {
+    border-color: #3498db;
+    background: #fff;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.fecha-hora {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.upload-zone {
+    border: 2px dashed #cbd5e0;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: #f8fafc;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.upload-zone:hover {
+    border-color: #3498db;
+    background: #ebf5fb;
+}
+
+.upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
+.upload-zone i {
+    font-size: 28px;
+    color: #a0aec0;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.upload-zone p {
+    font-size: 13px;
+    color: #718096;
+}
+
+#nombreArchivoNuevo {
+    font-size: 13px;
+    color: #3498db;
+    font-weight: 600;
+    margin-top: 8px;
+    display: none;
+}
+
+.btn-guardar {
+    width: 100%;
+    height: 48px;
+    background: #111;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-guardar:hover {
+    background: #333;
+}
+
+.btn-guardar:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+}
+
+.btn-eliminar {
+    width: 100%;
+    height: 44px;
+    background: transparent;
+    color: #e53e3e;
+    border: 2px solid #e53e3e;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+.btn-eliminar:hover {
+    background: #e53e3e;
+    color: white;
+}
+
+#mensajeRespuesta {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 10px;
+    min-height: 18px;
+}
+
+.archivo-actual {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #f0f7ff;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #3498db;
+    margin-bottom: 10px;
+}

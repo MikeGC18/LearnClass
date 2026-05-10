@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarea - LearnClass</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/tareaalumno.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/mis-asignaturas" class="btn-volver" id="btnVolver">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <!-- Info de la tarea -->
+        <div class="card">
+            <h3>Detalle de tarea</h3>
+            <div class="tarea-titulo" id="tituloTarea">Cargando...</div>
+
+            <div class="info-row">
+                <i class="fa-solid fa-book"></i>
+                <span id="materiaTarea">—</span>
+            </div>
+            <div class="info-row">
+                <i class="fa-solid fa-calendar"></i>
+                <span>Entrega: <strong id="fechaTarea">—</strong></span>
+            </div>
+            <div class="info-row">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Estado: <span id="estadoTarea"></span></span>
+            </div>
+
+            <div class="descripcion" id="descripcionTarea"></div>
+
+            <a id="archivoTarea" href="#" target="_blank" class="archivo-adjunto" style="display:none;">
+                <i class="fa-solid fa-paperclip"></i>
+                Ver archivo del profesor
+            </a>
+        </div>
+
+        <!-- Calificación si existe -->
+        <div class="card" id="cardCalificacion" style="display:none;">
+            <h3>Calificación</h3>
+            <div class="calificacion-box">
+                <div class="nota" id="notaAlumno">—</div>
+                <div class="feedback" id="feedbackAlumno">Sin feedback</div>
+            </div>
+        </div>
+
+        <!-- Entregar tarea -->
+        <div class="card" id="cardEntrega">
+            <h3>Tu entrega</h3>
+
+            <div class="ya-entregado" id="yaEntregado" style="display:none;">
+                <i class="fa-solid fa-circle-check"></i>
+                <span id="fechaEntregaAlumno">Entregado</span>
+            </div>
+
+            <div id="formEntrega">
+                <div class="form-group">
+                    <label>Comentario <span style="font-weight:400; text-transform:none;">(opcional)</span></label>
+                    <textarea id="comentarioEntrega" placeholder="Añade un comentario a tu entrega..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Archivo</label>
+                    <div class="upload-zone">
+                        <input type="file" id="archivoEntrega">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p>Arrastra tu archivo o haz clic para seleccionar</p>
+                    </div>
+                    <p id="nombreArchivoEntrega"></p>
+                </div>
+
+                <button class="btn-entregar" id="btnEntregar">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Entregar tarea
+                </button>
+                <p id="mensajeEntrega"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        const tareaId = window.location.pathname.split('/').pop();
+
+        async function cargarTarea() {
+            try {
+                const res = await fetch(`/materias/tarea/${tareaId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const t = data.tarea;
+
+                const fecha = new Date(t.fechaEntrega);
+                const ahora = new Date();
+                const diffMs = fecha - ahora;
+
+                document.getElementById('tituloTarea').innerText = t.titulo;
+                document.getElementById('materiaTarea').innerText = t.materia ? t.materia.nombre : '—';
+                document.getElementById('fechaTarea').innerText = fecha.toLocaleDateString('es-ES') + ' ' + fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('descripcionTarea').innerText = t.descripcion || 'Sin descripción';
+
+               
+                if (t.materia) {
+                    document.getElementById('btnVolver').href = `/asignatura/${t.materia._id}`;
+                }
+
+                
+                let pillHTML = '';
+                if (diffMs < 0) pillHTML = `<span class="pill red">Vencida</span>`;
+                else if (diffMs < 1000 * 60 * 60 * 48) pillHTML = `<span class="pill orange">Próxima a vencer</span>`;
+                else pillHTML = `<span class="pill green">Abierta</span>`;
+                document.getElementById('estadoTarea').innerHTML = pillHTML;
+
+                
+                if (diffMs < 0) {
+                    document.getElementById('btnEntregar').disabled = true;
+                    document.getElementById('btnEntregar').innerHTML = '<i class="fa-solid fa-lock"></i> Plazo cerrado';
+                    document.getElementById('formEntrega').style.opacity = '0.5';
+                    document.getElementById('formEntrega').style.pointerEvents = 'none';
+                }
+
+                if (t.archivo) {
+                    const el = document.getElementById('archivoTarea');
+                    el.href = '/' + t.archivo;
+                    el.style.display = 'flex';
+                }
+
+                
+                const alumnoId = JSON.parse(localStorage.getItem('user') || '{}').id;
+                const entrega = t.entregas && t.entregas.find(e => e.alumno === alumnoId || (e.alumno && e.alumno._id === alumnoId));
+
+                if (entrega) {
+                    document.getElementById('yaEntregado').style.display = 'flex';
+                    document.getElementById('fechaEntregaAlumno').innerText = '✅ Entregado el ' + new Date(entrega.fechaEntrega).toLocaleDateString('es-ES');
+                    document.getElementById('formEntrega').style.display = 'none';
+
+                    if (entrega.calificacion !== null && entrega.calificacion !== undefined) {
+                        document.getElementById('cardCalificacion').style.display = 'block';
+                        document.getElementById('notaAlumno').innerText = entrega.calificacion + '/10';
+                        document.getElementById('feedbackAlumno').innerText = entrega.feedback || 'Sin feedback';
+                    }
+                }
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        cargarTarea();
+
+        
+        document.getElementById('archivoEntrega').addEventListener('change', (e) => {
+            const el = document.getElementById('nombreArchivoEntrega');
+            if (e.target.files[0]) {
+                el.innerText = '📎 ' + e.target.files[0].name;
+                el.style.display = 'block';
+            }
+        });
+
+       
+        document.getElementById('btnEntregar').addEventListener('click', async () => {
+            const comentario = document.getElementById('comentarioEntrega').value.trim();
+            const archivo = document.getElementById('archivoEntrega').files[0];
+            const msg = document.getElementById('mensajeEntrega');
+            const btn = document.getElementById('btnEntregar');
+
+            const formData = new FormData();
+            formData.append('comentario', comentario);
+            if (archivo) formData.append('archivo', archivo);
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Entregando...';
+
+            try {
+                const res = await fetch(`/materias/entregar-tarea/${tareaId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    msg.innerText = '✅ Tarea entregada correctamente';
+                    msg.style.color = 'green';
+                    setTimeout(() => cargarTarea(), 1000);
+                } else {
+                    msg.innerText = result.error || 'Error al entregar';
+                    msg.style.color = 'red';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Entregar tarea';
+                }
+            } catch (err) {
+                msg.innerText = 'Error de conexión';
+                msg.style.color = 'red';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Entregar tarea';
+            }
+        });
+    </script>
+</body>
+
+</html>
