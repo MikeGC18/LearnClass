@@ -145,8 +145,16 @@ GROQ_API_KEY=tu_api_key_groq
 ```
 
 ---
+## 8. Mockups figma
+![descripcion](Imagenes/Mockup1.png)
+![descripcion](Imagenes/Mockup2.png)
+![descripcion](Imagenes/Mockup3.png)
+![descripcion](Imagenes/Mockup4.png)
+![descripcion](Imagenes/Mockup5.png)
 
-## 8. Estructura de carpetas
+`
+
+## 9. Estructura de carpetas
 
 ```
 Proyecto Learn Class/
@@ -164,6 +172,29 @@ Proyecto Learn Class/
 ```
 
 ---
+## 10. Posibles mejoras
+### Funcionalidades pendientes
+
+**Tests evaluativos completos** — actualmente el profesor puede crear tests pero falta la página donde el alumno los responde y el sistema los autocorrige automáticamente mostrando la nota final
+**Calificaciones globales** — una sección donde el alumno pueda ver todas sus notas de todas las materias en un único panel, con la media calculada automáticamente
+**Sistema de mensajería en tiempo real** — chat entre profesor y alumno usando Socket.io, que ya está preparado en la estructura del proyecto pero sin implementar
+
+### Mejoras técnicas
+
+Separar controladores de rutas — actualmente algunas rutas como anuncios.js y tests.js tienen la lógica mezclada dentro del router en vez de en un controlador separado, lo que va en contra del patrón MVC
+Subida de archivos a la nube — migrar de almacenamiento local (uploads/) a Cloudinary para que los archivos persistan correctamente en producción (en Render el sistema de archivos local se reinicia con cada despliegue)
+Caché del servidor — añadir cabeceras Cache-Control para evitar que el navegador muestre el dashboard tras cerrar sesión
+
+Mejoras de experiencia de usuario
+
+Perfil de usuario — página donde el alumno y el profesor puedan editar su nombre, foto de perfil e institución
+Estadísticas para el profesor — gráficas con el porcentaje de entregas por tarea, notas medias y participación de los alumnos
+Notificaciones por email — avisar al alumno por email cuando el profesor publica una tarea nueva o califica una entrega
+Modo oscuro — opción para cambiar entre tema claro y oscuro
+
+---
+
+``
 
 ## 9. URL
 https://learnclass.onrender.com
