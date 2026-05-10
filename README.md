@@ -173,11 +173,22 @@ Proyecto Learn Class/
 
 ---
 ## 10. Posibles mejoras
-### Funcionalidades pendientes
 
-**Tests evaluativos completos** — actualmente el profesor puede crear tests pero falta la página donde el alumno los responde y el sistema los autocorrige automáticamente mostrando la nota final
-**Calificaciones globales** — una sección donde el alumno pueda ver todas sus notas de todas las materias en un único panel, con la media calculada automáticamente
-**Sistema de mensajería en tiempo real** — chat entre profesor y alumno usando Socket.io, que ya está preparado en la estructura del proyecto pero sin implementar
+### Funcionalidades pendientes
+- **Tests evaluativos completos** — actualmente el profesor puede crear tests pero falta la página donde el alumno los responde y el sistema los autocorrige automáticamente mostrando la nota final
+- **Calificaciones globales** — una sección donde el alumno pueda ver todas sus notas de todas las materias en un único panel, con la media calculada automáticamente
+- **Sistema de mensajería en tiempo real** — chat entre profesor y alumno usando Socket.io, que ya está preparado en la estructura del proyecto pero sin implementar
+
+### Mejoras técnicas
+- **Separar controladores de rutas** — actualmente algunas rutas tienen la lógica mezclada dentro del router
+- **Subida de archivos a la nube** — migrar de uploads/ local a Cloudinary
+- **Caché del servidor** — añadir cabeceras Cache-Control
+
+### Mejoras de experiencia de usuario
+- **Perfil de usuario** — editar nombre, foto e institución
+- **Estadísticas para el profesor** — gráficas con notas medias y participación
+- **Notificaciones por email** — avisar al alumno cuando hay tareas nuevas
+- **Modo oscuro** — opción para cambiar entre tema claro y oscuro
 
 ### Mejoras técnicas
 
