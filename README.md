@@ -1,148 +1,169 @@
-# LearnClass - Plataforma educativa para profesores y alumnos
+# LearnClass - Plataforma Educativa
 
-Una plataforma web que permite a los profesores gestionar cursos y a los estudiantes acceder a materiales, enviar tareas y comunicarse con los profesores. 
+Una plataforma web que permite a los profesores gestionar cursos y a los alumnos acceder a materiales, entregar tareas y comunicarse con sus profesores.
 
 ---
 
-## 1. Idea de proyecto
+## 1. Idea del proyecto
 
 LearnClass es una plataforma web diseñada para mejorar la comunicación y organización entre profesores y alumnos.
 
-Muchos estudiantes necesitan acceder a materiales de clase, entregar tareas o comunicarse con el profesor utilizando diferentes herramientas. LearnClass reúne todas estas funcionalidades en un único entorno digital.
+Muchos estudiantes necesitan acceder a materiales de clase, entregar tareas o comunicarse con el profesor utilizando diferentes herramientas dispersas. LearnClass reúne todas estas funcionalidades en un único entorno digital, seguro y fácil de usar.
 
-La plataforma permitirá que los profesores puedan crear cursos, subir materiales y asignar tareas, mientras que los alumnos podrán acceder al contenido, entregar trabajos y consultar sus calificaciones.
+La plataforma permite que los profesores creen materias, suban materiales, asignen tareas y publiquen anuncios, mientras que los alumnos pueden acceder al contenido, entregar trabajos, realizar tests evaluativos y consultar sus calificaciones.
 
-El objetivo principal del proyecto es facilitar la gestión académica y mejorar la comunicación entre profesores y estudiantes mediante una plataforma sencilla, segura y profesional.
-
----
-
-## 2. Requisitos funcionales
-
-La aplicación deberá permitir las siguientes funcionalidades:
-
-- Los usuarios podrán **registrarse e iniciar sesión** en la plataforma.
-- El sistema diferenciará entre **dos tipos de usuario: profesor y alumno**, y validará los roles mediante correo institucional o simulación de cuentas oficiales.
-- Los profesores podrán **crear cursos o asignaturas** una vez aprobado su rol.
-- Los alumnos podrán **inscribirse en cursos disponibles**.
-- Los profesores podrán **subir materiales de clase** como documentos, enlaces o recursos educativos.
-- Los alumnos podrán **visualizar y descargar los materiales** de los cursos en los que estén inscritos.
-- Los profesores podrán **crear tareas o actividades** dentro de un curso.
-- Los alumnos podrán **entregar sus tareas a través de la plataforma**.
-- Los profesores podrán **revisar y calificar las entregas de los alumnos**.
-- El sistema permitirá **publicar avisos o anuncios dentro de cada curso**.
-- Los usuarios podrán **comunicarse mediante un sistema de mensajería o chat en tiempo real**.
+El objetivo principal es facilitar la gestión académica y mejorar la comunicación entre profesores y alumnos mediante una plataforma sencilla, segura y profesional.
 
 ---
 
-## 3. Mockup gráfico
+## 2. Funcionalidades implementadas
 
-A continuación se muestran algunos wireframes o mockups de las principales pantallas de la aplicación.
+### Autenticación y usuarios
+- Registro con verificación por PIN enviado al email (Nodemailer + Gmail SMTP)
+- Inicio de sesión con autenticación JWT (token con caducidad de 24 horas)
+- Dos roles diferenciados: **profesor** y **alumno**
+- Protección de rutas mediante middleware de autenticación
 
-### Página de inicio
-![Home Mockup](mockups/home.png)
+### Profesor
+- Crear y gestionar múltiples materias con código de unión único
+- Crear tareas con fecha límite y archivo adjunto
+- Crear tests evaluativos manualmente o **generados automáticamente con IA** (Groq API - Llama 3.3)
+- Ver entregas de los alumnos y calificar con nota y feedback
+- Subir material de clase (PDF, ZIP, DOC, imágenes, etc.)
+- Publicar anuncios para los alumnos de una materia
+- Gestionar alumnos — ver quién está matriculado y expulsarlos
+- Seleccionar entre múltiples materias desde el dashboard
 
-### Panel de profesor
-![Teacher Dashboard](mockups/teacher_dashboard.png)
-
-### Panel de alumno
-![Student Dashboard](mockups/student_dashboard.png)
-
-### Gestión de cursos
-![Courses Mockup](mockups/courses.png)
-
-### Entrega de tareas
-![Assignments Mockup](mockups/assignments.png)
-
-*(Los mockups han sido diseñados utilizando herramientas como Figma, Excalidraw o bocetos iniciales.)*
+### Alumno
+- Unirse a materias mediante código de clase
+- Ver tareas pendientes, vencidas y entregadas en un timeline
+- Entregar tareas con archivo y comentario antes de la fecha límite
+- Realizar tests evaluativos
+- Descargar material subido por el profesor
+- Recibir anuncios del profesor con notificación en la campana
+- Ver calificaciones y feedback de las tareas entregadas
 
 ---
 
-## 4. Arquitectura y tecnología
+## 3. Arquitectura y tecnología
 
-El proyecto se desarrollará siguiendo una arquitectura **cliente-servidor basada en el patrón MVC (Model-View-Controller)**.
+El proyecto sigue una arquitectura **cliente-servidor basada en el patrón MVC (Model-View-Controller)**.
+
+```
+models/      → Esquemas de MongoDB (Mongoose)
+views/       → Plantillas EJS (HTML dinámico)
+controllers/ → Lógica de negocio
+routes/      → Definición de rutas Express
+middleware/  → Autenticación JWT
+config/      → Configuración de servicios externos
+```
 
 ### Frontend
-
-El frontend será la parte visible de la aplicación y permitirá la interacción con los usuarios.
-
-Tecnologías utilizadas:
-
-- HTML
-- CSS
-- JavaScript
-- Bootstrap (para diseño responsive)
-
----
+- **HTML + CSS + JavaScript** — sin frameworks, vanilla puro
+- **EJS** — motor de plantillas para renderizar vistas desde el servidor
+- **Font Awesome** — iconos
+- **Google Fonts** — tipografía Inter
 
 ### Backend
-
-El backend gestionará la lógica de negocio de la aplicación.
-
-Tecnologías utilizadas:
-
-- **Node.js**
-- **Express.js**
-- Arquitectura MVC para separar **modelos, controladores y rutas**
-
----
+- **Node.js** — entorno de ejecución
+- **Express.js** — framework web para gestionar rutas y peticiones HTTP
+- **JWT (jsonwebtoken)** — autenticación sin estado (stateless)
+- **Bcrypt** — encriptación de contraseñas
+- **Multer** — subida de archivos al servidor
+- **Nodemailer** — envío de emails con Gmail SMTP
 
 ### Base de datos
+- **MongoDB Atlas** — base de datos NoSQL en la nube
+- **Mongoose** — ODM para definir esquemas y hacer consultas
 
-Para el almacenamiento de información se utilizará:
-
-- **MySQL**
-
-La base de datos almacenará información como:
-
-- usuarios
-- cursos
-- materiales
-- tareas
-- entregas
-- mensajes
-- instituciones
+### API externa de IA
+- **Groq API** (modelo Llama 3.3 70B) — generación automática de preguntas para tests evaluativos
 
 ---
 
-### Comunicación en tiempo real
+## 4. Modelos de datos
 
-Para implementar funcionalidades de mensajería o chat se utilizará:
-
-- **Socket.io**
-
-Esto permitirá que profesores y alumnos puedan comunicarse **en tiempo real** dentro de la plataforma.
-
----
-
-### Registro y validación de roles
-
-Para garantizar que los usuarios tengan el rol correcto:
-
-1. **Registro de usuario**
-   - El usuario elige su rol (profesor o alumno) y selecciona su **institución/centro educativo**.
-
-2. **Simulación de cuentas oficiales tipo Clickedu**
-   - Los profesores deben registrar un correo que contenga `"prof@gmail.com"` y los alumnos `"student@gmail.com"`.
-   - Esto simula que solo los correos oficiales de la institución pueden ser profesores.
-   - El backend valida siempre los roles antes de permitir acciones sensibles (como crear cursos o asignar tareas).
-
-3. **Email de confirmación**
-   - Cuando el rol se aprueba, se envía un correo de confirmación indicando que el usuario ya puede usar su cuenta como profesor.
-
-4. **Alumno**
-   - Los alumnos pueden registrarse directamente con su email simulado o institucional.
-
-Este método permite demostrar **control de roles seguro y profesional** sin necesidad de infraestructura real ni licencias de correo.
+| Modelo | Descripción |
+|--------|-------------|
+| `Usuario` | Profesores y alumnos con rol, email, contraseña encriptada y estado de verificación |
+| `Materia` | Asignatura con código único, profesor propietario y array de alumnos matriculados |
+| `Tarea` | Actividad con fecha límite, archivo adjunto y array de entregas de alumnos |
+| `Test` | Examen con preguntas, opciones y respuesta correcta |
+| `Material` | Archivo subido por el profesor asociado a una materia |
+| `Anuncio` | Mensaje del profesor con control de lectura por alumno |
 
 ---
 
-### Estructura general de la aplicación
+## 5. Flujo de autenticación
 
-La aplicación se dividirá en varias capas:
+```
+1. Registro → el usuario rellena el formulario y elige rol
+        ↓
+2. El servidor guarda el usuario con verificado: false
+   y envía un PIN de 6 dígitos al email
+        ↓
+3. El usuario introduce el PIN en la página de verificación
+        ↓
+4. El servidor verifica el PIN, marca al usuario como verificado
+   y genera un token JWT con sus datos (id, rol, email)
+        ↓
+5. El frontend guarda el token en localStorage
+   y redirige al dashboard según el rol
+        ↓
+6. En cada petición el frontend manda el token en el header:
+   Authorization: Bearer <token>
+        ↓
+7. El middleware auth.js verifica el token
+   y permite o deniega el acceso a la ruta
+```
 
-- **Frontend** → interfaz que utilizan profesores y alumnos.
-- **Backend (Node.js + Express)** → lógica de negocio y gestión de peticiones.
-- **Base de datos (MySQL)** → almacenamiento de la información del sistema.
-- **Servidor de comunicación en tiempo real (Socket.io)** → mensajería instantánea.
+---
 
-Esta arquitectura permite que la aplicación sea **segura, modular, escalable y fácil de mantener**.
+## 6. Integración con IA (Groq API)
+
+El profesor puede generar preguntas automáticamente para los tests usando IA:
+
+1. El profesor escribe el **tema** y el **número de preguntas**
+2. El frontend manda la petición al backend (`/ia/generar-preguntas`)
+3. El backend llama a la **API de Groq** con el modelo `llama-3.3-70b-versatile`
+4. La IA devuelve las preguntas en formato JSON
+5. Las preguntas aparecen en el formulario listas para editar y publicar
+
+> La llamada se hace desde el **backend** para proteger la API key — nunca se expone al navegador.
+
+---
+
+## 7. Variables de entorno (.env)
+
+```
+PORT=3000
+MONGO_URI=mongodb+srv://...
+SESSION_SECRET=clave_secreta_jwt
+GMAIL_USER=tu_email@gmail.com
+GMAIL_PASS=contraseña_aplicacion
+GROQ_API_KEY=tu_api_key_groq
+```
+
+---
+
+## 8. Estructura de carpetas
+
+```
+Proyecto Learn Class/
+├── config/          → Configuración de servicios (Cloudinary, etc.)
+├── controllers/     → Lógica de negocio (authController, materiaController)
+├── middleware/      → Autenticación JWT (auth.js)
+├── models/          → Esquemas Mongoose (Usuario, Materia, Tarea, Test, Material, Anuncio)
+├── routes/          → Rutas Express (auth, materias, tests, anuncios, ia)
+├── views/           → Plantillas EJS (todas las páginas)
+├── Public/          → Archivos CSS estáticos
+├── uploads/         → Archivos subidos por los usuarios
+├── .env             → Variables de entorno (no subir a GitHub)
+├── app.js           → Punto de entrada de la aplicación
+└── package.json     → Dependencias del proyecto
+```
+
+---
+
+## 9. URL
+https://learnclass.onrender.com
